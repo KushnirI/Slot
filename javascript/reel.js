@@ -1,4 +1,5 @@
-import {gameSize, gameArea, possibleSymSrc, randomInt, renderLoop, changeAnimRequireTo} from "./engine";
+import {gameSize, possibleSymSrc, renderLoop, changeAnimRequireTo, textures} from "./engine";
+import {randomInt} from "./utils";
 import {Symbol} from "./symbol";
 
 export class Reel extends PIXI.Container{
@@ -7,56 +8,46 @@ export class Reel extends PIXI.Container{
 
         this.position.set(x, y);
         this.step = gameSize.height/symbolsNum;
-        this.symbolsArr = [];
+        this.symbols = [];
 
-        this.addSymbols(symbolsNum);
+        this.addSymbols(symbolsNum + 1);
 
         renderLoop.push(this);
-        gameArea.addChild(this);
     }
 
-    addSymbols(symbolsNum, top = 0) {
+    addSymbols(symbolsNum) {
         for(let i = 0; i < symbolsNum; i++) {
 
             let index = randomInt(0, possibleSymSrc.length - 1);
             let symbol = new Symbol(possibleSymSrc[index], this.step);
-            symbol.position.set(0, this.step * i + top *(-this.step));
+            symbol.position.set(0, this.step * i);
             this.addChild(symbol);
-            this.symbolsArr.push(symbol);
-
+            this.symbols.push(symbol);
         }
-
     }
 
     spin(symbNum){
-        this.addSymbols(symbNum, symbNum);
+        let lastIndex = this.symbols.length - 1;
+        let lastSymbol = this.symbols[lastIndex];
+        let index = randomInt(0, possibleSymSrc.length - 1);
+        // debugger;
+        lastSymbol.texture = textures[possibleSymSrc[index]];
+        lastSymbol.position.set(0, -lastSymbol.height);
+
+        this.symbols.unshift(this.symbols.pop());
+
         changeAnimRequireTo(true);
 
-        this.symbolsArr.forEach((symbol) => {
-            symbol.symbolsOnTop = symbNum;
-            symbol.currentStep = this.step;
+        this.symbols.forEach((symbol) => {
+            symbol.symbolsBeforeResult = symbNum;
+            symbol.twin.makeSpin();
         })
     }
 
-    removeUseless() {
-        this.symbolsArr.forEach((symbol) => {
-            if(symbol.y < -5){
-                symbol.visible = false;
-            }
 
-            if (symbol.y > gameSize.height -1){
-                symbol.visible = false;
-            }
-        });
-
-        this.symbolsArr = this.symbolsArr.filter( (symbol) => symbol.visible);
-    }
-
-
-
-    update() {
-        this.symbolsArr.forEach((symbol) => {
-            symbol.spinAnimation();
+    update(delta) {
+        this.symbols.forEach((symbol) => {
+            symbol.update(delta);
         })
     }
 }

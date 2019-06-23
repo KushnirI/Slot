@@ -1,4 +1,5 @@
-import {textures, animationRequired,spinOverFiltration} from "./engine";
+import {textures, animationRequired, spinOverFiltration} from "./engine";
+import {EvenlyChangeValueBetween} from "./evenlyChangeValueBetween";
 
 export class Symbol extends PIXI.Sprite{
     constructor(textureSrc, width){
@@ -7,33 +8,19 @@ export class Symbol extends PIXI.Sprite{
         this.height = width;
         this.type = textureSrc;
 
-        this.symbolsOnTop = 0;
-        this.currentStep = 0;
-        this.animationStep = 8;
+        this.symbolsBeforeResult = 0;
+        this.speed = 1000;
+
+        this.twin = new EvenlyChangeValueBetween(this, this.speed, this.informParrent)
 
     }
 
-    spinAnimation() {
-
-        if(this.symbolsOnTop > 0 && this.currentStep > 0) {
-            if (this.currentStep < this.animationStep) {
-                this.y += this.currentStep;
-                this.currentStep = 0;
-                this.symbolsOnTop--;
-            } else{
-                this.currentStep -= this.animationStep;
-                this.y += this.animationStep;
-            }
-
-
-        } else if (this.symbolsOnTop > 0 && animationRequired){
-            this.currentStep = this.width;
-        } else{
-            spinOverFiltration();
-        }
-
+    update(delta) {
+        this.twin.update(delta);
     }
 
-
-
+    informParrent() {
+        // TODO: should inform reel that symbol is in the end position
+        console.error("end position reached");
+    }
 }

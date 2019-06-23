@@ -1,5 +1,7 @@
 import {Button} from "./button";
 import {Reel} from "./reel";
+import {EvenlyChangeValueBetween} from "./evenlyChangeValueBetween";
+import {Reels} from "./reels";
 
 export const app = new PIXI.Application ({
     width: 800,
@@ -16,7 +18,10 @@ export let textures,
     background,
     button,
     gameArea,
-    gameMask;
+    reels,
+    reelsMask,
+    evenlyChangeValueBetween,
+    testDate;
 
 export const possibleSymSrc = [
     "agent.png",
@@ -30,9 +35,16 @@ export const possibleSymSrc = [
     "spiderW.png"
 ];
 
+const spinButtonSrc = {
+    idle : "button_idle.png",
+    hover: "button_hover.png",
+    down : "button_down.png",
+    disabled : "button_disabled.png"
+};
+
 export let animationRequired = false;
 export let renderLoop = [];
-export const reels = [];
+
 export const gameSize = {
     width: 800,
     height: 400,
@@ -40,54 +52,41 @@ export const gameSize = {
     reels: 5
 };
 
+/*export let test = {
+    start : 23,
+    end : 57
+};*/
+
 function setup() {
     textures = PIXI.Loader.shared.resources["./images/sheet.json"].textures;
 
     background = new PIXI.Sprite(textures["background.png"]);
     app.stage.addChild(background);
 
-    gameArea = new PIXI.Container();
-    gameArea.width = gameSize.width;
-    gameArea.height = gameSize.height;
+    reels = new Reels();
+    addMask(reels);
 
-    gameMask = new PIXI.Graphics();
-    app.stage.addChild(gameMask);
-    gameMask.position.set(0,0);
-    gameMask.lineStyle(0);
+    /*testDate = new Date();
+    evenlyChangeValueBetween = new EvenlyChangeValueBetween(test, 2000, justForTest);*/
 
-    gameArea.mask = gameMask;
-
-    for(let i = 0; i < gameSize.reels; i++){
-        reels.push(new Reel(gameSize.width/gameSize.reels * i,0,gameSize.rows));
-    }
-
-    app.stage.addChild(gameArea);
-    button = new Button();
+    button = new Button(400, 450, spinButtonSrc);
 
     app.ticker.add(delta => gameLoop(delta));
-
 }
 
-function gameLoop(){
+function gameLoop(delta){
 
     for(let i = 0; i < renderLoop.length; i++){
-        renderLoop[i].update();
+        renderLoop[i].update(delta);
     }
 
-    gameMask.clear();
-    gameMask.beginFill();
-    gameMask.drawRect(0, 0, gameSize.width, gameSize.height)
+    reelsMask.beginFill();
+    reelsMask.drawRect(0, 0, gameSize.width, gameSize.height)
 }
 
-export function randomInt(min, max) {
-    let rand = min + Math.random() * (max + 1 - min);
-    rand = Math.floor(rand);
-    return rand;
-}
-
-export function makeSpin(AddSymb) {
-    reels.forEach((reel) => {
-        reel.spin(AddSymb);
+export function makeSpin(addSymb) {
+    reels.allReels.forEach((reel) => {
+        reel.spin(addSymb);
     })
 }
 
@@ -98,8 +97,20 @@ export function changeAnimRequireTo (boolean) {
 export function spinOverFiltration() {
     changeAnimRequireTo(false);
     button.disabled = false;
-    reels.forEach((reel) => {
-        reel.removeUseless();
-    })
+
 }
 
+function addMask(obj) {
+    reelsMask = new PIXI.Graphics();
+    app.stage.addChild(reelsMask);
+    reelsMask.position.set(0,0);
+    reelsMask.lineStyle(0);
+    reelsMask.clear();
+
+    obj.mask = reelsMask;
+}
+
+// function justForTest() {
+//     console.log(test.start);
+//     console.log(new Date() - testDate);
+// }

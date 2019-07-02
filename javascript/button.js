@@ -1,7 +1,7 @@
-import {textures, app, makeSpin, animationRequired, changeAnimRequireTo} from "./engine";
+import {textures, app, animationRequired, changeAnimRequireTo} from "./engine";
 
 export class Button extends PIXI.Sprite{
-    constructor(x, y, buttonTextures){
+    constructor(x, y, buttonTextures, callback){
         super(textures[buttonTextures.idle]);
 
         this.idleTexture = buttonTextures.idle;
@@ -16,6 +16,8 @@ export class Button extends PIXI.Sprite{
         this.interactive = true;
         this.disabled = false;
 
+        this.callback = callback;
+
         this.setHitArea(65);
 
         app.stage.addChild(this);
@@ -23,17 +25,17 @@ export class Button extends PIXI.Sprite{
 
 
     mouseover() {
-        this.disabled ? this.texture = textures[this.disabledTexture] : this.texture = textures[this.hoverTexture];
+        this.texture = this.disabled ? textures[this.disabledTexture] : textures[this.hoverTexture];
     }
 
     mouseout() {
-        this.disabled ? this.texture = textures[this.disabledTexture] : this.texture = textures[this.idleTexture];
+        this.texture = this.disabled ? textures[this.disabledTexture] : textures[this.idleTexture];
     }
 
     mousedown() {
         if(!animationRequired &&  !this.disabled){
             this.texture = textures[this.downTexture];
-            makeSpin(2);
+            this.callback();
         } else {
             this.disabled = true;
             this.texture = textures[this.disabledTexture];
@@ -42,9 +44,13 @@ export class Button extends PIXI.Sprite{
     }
 
     mouseup() {
-        this.disabled ? this.texture = textures[this.disabledTexture] : this.texture = textures[this.hoverTexture];
+        this.texture = this.disabled ? textures[this.disabledTexture] : textures[this.hoverTexture];
     }
 
+    /**
+     *
+     * @param {number} radius hitArea radius
+     */
     setHitArea (radius) {
         this.hitArea = new PIXI.Circle(0, 0, radius);
     }

@@ -1,4 +1,4 @@
-import {gameSize, app, changeAnimRequireTo, betLines, renderLoop, winScreen} from "./engine";
+import {changeAnimRequireTo, winScreen, betSize} from "./engine";
 import {Reel} from "./reel";
 
 // I guess this class is overloaded but I haven't found a solution how to handle win lines other way
@@ -9,7 +9,7 @@ export class Reels extends PIXI.Container{
         this.allReels = [];
 
         for(let i = 0; i < gameSize.reels; i++){
-            let reel = new Reel(gameSize.width/gameSize.reels * i,0,gameSize.rows, this.reelOnComplete.bind(this));
+            let reel = new Reel(gameSize.width/gameSize.reels * i, 0,gameSize.rows);
             this.allReels.push(reel);
             this.addChild(reel)
         }
@@ -19,31 +19,13 @@ export class Reels extends PIXI.Container{
         this.reelsCounter = 0;
         this.currentWinLines = [];
 
-        renderLoop.push(this);
         app.stage.addChild(this);
     }
 
     /**
-     *
-     * @param {number} symbsBfResult amount of symbols before result
+     * create a mask to limit visible zone
      */
-    start(symbsBfResult) {
-        changeAnimRequireTo(true);
-        this.spinReels(symbsBfResult);
-    }
-
-    /**
-     *
-     * @param {number} symbsBfResult amount of symbols before result
-     */
-    spinReels (symbsBfResult) {
-        this.allReels.forEach( reel => {
-            reel.spin(symbsBfResult);
-            reel.symbolsBeforeResult = symbsBfResult;
-        })
-    }
-
-     addMask() {
+    addMask() {
         let reelsMask = new PIXI.Graphics();
         app.stage.addChild(reelsMask);
         reelsMask.position.set(0,0);
@@ -55,14 +37,33 @@ export class Reels extends PIXI.Container{
         this.mask = reelsMask;
     }
 
-    update() {
-        if (this.reelsCounter === this.allReels.length) {
-            this.reelsCounter = 0;
-            this.checkWinLines();
+    /**
+     *
+     * @param {number} symbsBfResult amount of symbols before result
+     */
+    start (symbsBfResult) {
+        changeAnimRequireTo(true);
+        this.allReels.forEach( reel => {
+            reel.moveLastSymbOnTop(symbsBfResult, this.onReelStopped.bind(this));
+        })
+    }
+
+    /**
+     * when each reel finished spin, it reduces counter
+     * when all reels are finished, reset the counter, and check bet lines
+     */
+    onReelStopped () {
+        this.reelsCounter--;
+        if (this.reelsCounter <= 0) {
+            this.reelsCounter = this.allReels.length;
+            this.checkBetLines();
         }
     }
 
-    checkWinLines (){
+    /**
+     * check each bet line for win combination
+     */
+    checkBetLines (){
         let winPoints = 0;
 
         for (let i = 0; i < betLines.length; i++) {
@@ -92,7 +93,7 @@ export class Reels extends PIXI.Container{
                 this.currentWinLines.push(...symbols);
 
                 symbols.forEach( symbol => {
-                    symbol.makeScale();
+                    symbol.winAnimation();
                 });
 
                 if(symbsMatched === 3){
@@ -113,17 +114,18 @@ export class Reels extends PIXI.Container{
         }
 
         if (winPoints > 0) {
-            // TODO create win constructor and make in visible here
-            winScreen.showScreen(winPoints);
+            //I have used sprites for selector, starting from 1, that's why I have to add +1 here;
+            let betMultiply = betSize.currentValue + 1;
+            winScreen.showScreen(winPoints * betMultiply);
             winPoints = 0;
         }
     }
 
-    reelOnComplete () {
-        this.reelsCounter++;
-    }
-
+    /**
+     * clears current win lines before next spin
+     */
     clearCurrentWinLines () {
         this.currentWinLines = [];
     }
+
 }

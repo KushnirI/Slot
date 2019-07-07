@@ -2,7 +2,7 @@ import {textures} from "./engine";
 import {CustomTween} from "./customTween";
 
 export class Symbol extends PIXI.Sprite{
-    constructor(textureSrc, width, onComplete){
+    constructor(textureSrc, width){
         super(textures[textureSrc]);
 
         this.width = width;
@@ -10,31 +10,34 @@ export class Symbol extends PIXI.Sprite{
         this.type = textureSrc;
 
         this.speed = 400;
-        this.onComplete = onComplete;
+        this.alpha = 0.7;
 
-        this.twin = new CustomTween(this, "y", this.y, this.y + this.height, this.speed,  this.onComplete);
-
-        this.isScaled = false;
+        this.twin = new CustomTween(this, "y", this.y, this.y + this.height, this.speed);
     }
 
-    makeSpin () {
-        this.twin.play(this.y, this.y + this.height);
+    /**
+     * sets default symbols params before next spin
+     * evenly change position by one slot using twin
+     * @param {function} onComplete callback function called when tween is finished
+     */
+    moveOneSlot (onComplete) {
+        this.removeWinAnimation();
+        this.twin.play(this.y, this.y + this.height, onComplete);
     }
 
-    makeScale () {
-        if(!this.isScaled){
-            this.scale.set(1.2);
-            this.isScaled = true;
-           /* I've got issues with changing size, I would rather change alpha property
-            for example 0.8 for start and 1 for win lines */
-        }
-
+    /**
+     * animation for win symbols
+     */
+    winAnimation () {
+        this.scale.set(1.15);
+        this.alpha = 1;
     }
 
-    removeScale() {
-        if(this.isScaled){
-            this.scale.set(1);
-            this.isScaled = false;
-        }
+    /**
+     * sets default symbols params
+     */
+    removeWinAnimation() {
+            this.scale.set(1.0418);
+            this.alpha = 0.7;
     }
 }

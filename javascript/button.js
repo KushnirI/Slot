@@ -1,4 +1,4 @@
-import {textures, app, animationRequired, changeAnimRequireTo} from "./engine";
+import {textures} from "./engine";
 
 export class Button extends PIXI.Sprite{
     constructor(x, y, buttonTextures, callback){
@@ -18,7 +18,7 @@ export class Button extends PIXI.Sprite{
 
         this.callback = callback;
 
-        this.setHitArea(65);
+        this.setHitArea(125);
 
         app.stage.addChild(this);
     }
@@ -33,18 +33,24 @@ export class Button extends PIXI.Sprite{
     }
 
     mousedown() {
-        if(!animationRequired &&  !this.disabled){
+        if(this.disabled){
+            this.texture = textures[this.disabledTexture];
+        } else {
             this.texture = textures[this.downTexture];
             this.callback();
-        } else {
-            this.disabled = true;
-            this.texture = textures[this.disabledTexture];
-            changeAnimRequireTo(false);
         }
     }
 
     mouseup() {
         this.texture = this.disabled ? textures[this.disabledTexture] : textures[this.hoverTexture];
+    }
+
+    enable() {
+        this.disabled = false;
+    }
+
+    disable () {
+        this.disabled = true;
     }
 
     /**

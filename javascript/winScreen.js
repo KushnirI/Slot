@@ -1,4 +1,3 @@
-import {renderLoop, app} from "./engine";
 import {Rectangle} from "./rectangle";
 
 export class WinScreen extends PIXI.Graphics{
@@ -14,26 +13,28 @@ export class WinScreen extends PIXI.Graphics{
         };
         this.message.position.set(width/2 - 130, height/2 - 36 );
 
-        this.addChild(this.screen);
-        this.addChild(this.message);
+        this.addChild(this.screen, this.message);
         this.visible = false;
         this.alpha = 0.6;
 
-        renderLoop.push(this);
         app.stage.addChild(this)
     }
 
+    /**
+     * makes winScreen visible
+     * @param {number} winAmount - amount of win points
+     */
     showScreen (winAmount){
         let winMsg = "You won " + winAmount + " !!!!!";
         this.visible = true;
         this.message.text = winMsg;
     }
 
+    /**
+     * hides winScreen
+     */
     hideScreen () {
         this.visible = false;
     }
 
-    update(){
-        //Stub
-    }
 }

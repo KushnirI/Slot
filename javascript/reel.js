@@ -1,4 +1,4 @@
-import {textures, animationRequired, changeAnimRequireTo, button} from "./engine";
+import {textures, animationRequired} from "./engine";
 import {randomInt} from "./utils";
 import {Symbol} from "./symbol";
 
@@ -14,8 +14,10 @@ export class Reel extends PIXI.Container{
         this.addSymbols(visibleSymbolsNum + 1);
 
         this.symbolsBeforeResult = 0;
+        this.resultSymbols = [0,0,0];
+        this.currentResultSymb = 2;
 
-        this.symbolsCounter = 0;
+        this.symbolsCounter = this.symbols.length;
     }
 
     /**
@@ -27,28 +29,41 @@ export class Reel extends PIXI.Container{
 
             let index = randomInt(0, possibleSymSrc.length - 1);
             let symbol = new Symbol(possibleSymSrc[index], this.step);
-            symbol.y = this.step * i;
+            symbol.position.set(this.step/2 ,this.step * i + this.step/2);
             this.addChild(symbol);
             this.symbols.push(symbol);
         }
     }
-
     /**
-     * reset and change position of the last symbol, hidden by reels mask, on top of visible zone
+     * @param {array} betResult array with result for current bet
      * @param {number} symbsBfResult amount of iteration before result
      * @param {function} onComplete callback function, which called when all iterations are finished
      */
-    moveLastSymbOnTop(symbsBfResult, onComplete){
+    start (betResult,symbsBfResult, onComplete) {
+        this.resultSymbols = betResult;
         this.symbolsBeforeResult = symbsBfResult;
         this.onComplete = onComplete;
+        // this.moveLastSymbOnTop();
+        this.symbols.forEach((symbol) => {
+            symbol.startSpin( this.onStartBounceFinished.bind(this) );
+        })
+    }
 
+    /**
+     *
+     * @param {boolean} randomSymb if true add randomSymbol
+     */
+    moveLastSymbOnTop(randomSymb = true){
         let lastIndex = this.symbols.length - 1;
         let lastSymbol = this.symbols[lastIndex];
-        let index = randomInt(0, possibleSymSrc.length - 1);
 
-        lastSymbol.texture = textures[possibleSymSrc[index]];
-        lastSymbol.type = possibleSymSrc[index];
-        lastSymbol.position.set(0, -lastSymbol.height);
+        if(randomSymb){
+            this.randResetSymbValue(lastSymbol);
+        } else {
+            this.setSymbResultValue(lastSymbol);
+        }
+
+        lastSymbol.position.set(this.step/2, -lastSymbol.height + this.step/2);
 
         this.symbols.unshift(this.symbols.pop());
 
@@ -58,30 +73,69 @@ export class Reel extends PIXI.Container{
     }
 
     /**
-     * when each symbol moved one slot, it reduces counter
+     * randomly reset symbol's texture and type
+     * @param {object} symb symbol object
+     */
+    randResetSymbValue(symb) {
+        let index = randomInt(0, possibleSymSrc.length - 1);
+        symb.texture = textures[possibleSymSrc[index]];
+        symb.type = possibleSymSrc[index];
+    }
+
+    setSymbResultValue(symb) {
+        let index = this.resultSymbols[this.currentResultSymb];
+        symb.texture = textures[possibleSymSrc[index]];
+        symb.type = possibleSymSrc[index];
+        this.currentResultSymb--;
+    }
+
+    /**
+     * when each symbol moved one slot, it reduces symbolsCounter
      * when all symbols are finished, reset the counter
      * if more iterations are required, call this.moveLastSymbOnTop
      */
     onSymbolMovedOneSlot() {
         this.symbolsCounter--;
-        if (this.symbolsCounter <= 0){
+        if (this.symbolsCounter === 0){
             this.symbolsCounter = this.symbols.length;
             this.symbolsBeforeResult--;
 
             if (this.symbolsBeforeResult > 0 && animationRequired) {
-                this.moveLastSymbOnTop(this.symbolsBeforeResult, this.onComplete);
-            } else {
-                this.onSpinOver();
+                this.moveLastSymbOnTop();
+
+            } else if(this.currentResultSymb >= 0) {
+                this.moveLastSymbOnTop(false);
+            }else {
+                this.symbols.forEach((symbol) => {
+                    symbol.endSpin( this.onEndBounceFinished.bind(this) );
+                });
+
             }
         }
     }
 
+    onStartBounceFinished () {
+        this.symbolsCounter--;
+        if (this.symbolsCounter === 0){
+            this.symbolsCounter = this.symbols.length;
+            this.moveLastSymbOnTop();
+        }
+    }
+
+    onEndBounceFinished () {
+        this.symbolsCounter--;
+        if (this.symbolsCounter === 0){
+            this.symbolsCounter = this.symbols.length;
+            this.onSpinOver();
+        }
+    }
+
     /**
-     * When current spin is over enable the spinButton and call callback function
+     * When current spin is over set default values and call callback function
      */
     onSpinOver() {
-        changeAnimRequireTo(false);
-        button.enable();
+        this.currentResultSymb = 2;
+        this.resultSymbols = [];
         this.onComplete();
     }
 

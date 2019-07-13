@@ -47,6 +47,7 @@ export class Button extends PIXI.Sprite{
 
     enable() {
         this.disabled = false;
+        this.texture = textures[this.idleTexture];
     }
 
     disable () {

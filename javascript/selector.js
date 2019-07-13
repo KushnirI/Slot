@@ -4,47 +4,51 @@ import {textures} from "./engine";
 
 
 export class Selector extends PIXI.Container{
-    constructor(x, y, leftSrc, rightSrc, numbers) {
+    constructor(x, y, leftSrc, rightSrc, possibleValues) {
         super();
-        this.minus = new Button(0, 0, leftSrc, this.minusOne.bind(this));
-        this.plus = new Button(200, 0, rightSrc, this.plusOne.bind(this));
+        this.minusButton = new Button(0, 0, leftSrc, this.minusOne.bind(this));
+        this.plusButton = new Button(200, 0, rightSrc, this.plusOne.bind(this));
 
-        this.numbers = numbers;
+        this.possibleValues = possibleValues;
         this.currentValue = 1;
-        this.sprite = new PIXI.Sprite(textures[this.numbers[this.currentValue]]);
-        this.sprite.anchor.set(0.5);
-        this.sprite.width = 125;
-        this.sprite.height = 125;
-        this.sprite.position.set(100, 0);
+        this.addNumber();
 
-        this.addChild(this.minus, this.plus, this.sprite);
+        this.addChild(this.minusButton, this.plusButton, this.number);
 
         this.position.set(x, y);
         app.stage.addChild(this);
     }
 
     minusOne() {
-        this.sprite.texture = textures[this.numbers[ --this.currentValue ]];
+        this.number.texture = textures[this.possibleValues[ --this.currentValue ]];
         this.buttonDisableCheck()
     }
 
     plusOne () {
-        this.sprite.texture = textures[this.numbers[ ++this.currentValue ]];
+        this.number.texture = textures[this.possibleValues[ ++this.currentValue ]];
         this.buttonDisableCheck()
     }
 
     buttonDisableCheck(){
-        if (this.currentValue + 1 >= this.numbers.length){
-            this.plus.disable();
+        if (this.currentValue >= this.possibleValues.length - 1){
+            this.plusButton.disable();
         } else {
-            this.plus.enable();
+            this.plusButton.enable();
         }
 
-        if (this.currentValue - 1 < 0){
-            this.minus.disable();
+        if (this.currentValue < 1){
+            this.minusButton.disable();
         } else {
-            this.minus.enable();
+            this.minusButton.enable();
         }
+    }
+
+    addNumber () {
+        this.number = new PIXI.Sprite(textures[this.possibleValues[this.currentValue]]);
+        this.number.anchor.set(0.5);
+        this.number.width = 125;
+        this.number.height = 125;
+        this.number.position.set(100, 0);
     }
 
 

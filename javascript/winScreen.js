@@ -1,4 +1,5 @@
 import {Rectangle} from "./rectangle";
+import {events} from "./engine";
 
 export class WinScreen extends PIXI.Graphics{
     constructor(x, y, width, height, color) {
@@ -17,15 +18,17 @@ export class WinScreen extends PIXI.Graphics{
         this.visible = false;
         this.alpha = 0.6;
 
+        this.by({"notify:winSpinOver" : this.showScreen});
+
         app.stage.addChild(this)
     }
 
     /**
      * makes winScreen visible
-     * @param {number} winAmount - amount of win points
+     * @param {number} config - amount of win points
      */
-    showScreen (winAmount){
-        let winMsg = "You won " + winAmount + " !!!!!";
+    showScreen (config){
+        let winMsg = "You won " + config.winAmount + " !!!!!";
         this.visible = true;
         this.message.text = winMsg;
     }
@@ -35,6 +38,23 @@ export class WinScreen extends PIXI.Graphics{
      */
     hideScreen () {
         this.visible = false;
+    }
+
+    by (params) {
+        if( !this.eventHandlers ){
+            this.eventHandlers = {};
+        }
+
+        for( let eventName in params) {
+            if( params.hasOwnProperty(eventName) ) {
+                if ( !this.eventHandlers[eventName]){
+
+                    events.addListener(eventName, this);
+                }
+
+                this.eventHandlers[eventName] = params[eventName] ;
+            }
+        }
     }
 
 }

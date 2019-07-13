@@ -3,6 +3,9 @@ import {Reels} from "./reels";
 import {makeSpin} from "./utils";
 import {WinScreen} from "./winScreen";
 import {Selector} from "./selector";
+import {Events} from "./events";
+import {Server} from "./server";
+import {BetLines} from "./betLines";
 
 document.body.appendChild(app.view);
 
@@ -12,10 +15,13 @@ PIXI.Loader.shared
 
 export let textures,
     background,
-    button,
+    spinButton,
     reels,
     winScreen,
-    betSize;
+    betSelector,
+    events,
+    server,
+    betLines;
 
 export let renderLoop = [];
 export let animationRequired = false;
@@ -26,10 +32,15 @@ function setup() {
     background = new PIXI.Sprite(textures["background.png"]);
     app.stage.addChild(background);
 
+    events = new Events();
+    betLines = new BetLines();
     reels = new Reels();
-    button = new Button(400, 450, spinButtonSrc, makeSpin);
+    spinButton = new Button(400, 450, spinButtonSrc, makeSpin);
     winScreen = new WinScreen(0,0, gameSize.width,gameSize.height, 0x504f52);
-    betSize = new Selector(550, 450, leftSelector, rightSelector, numbers, );
+    betSelector = new Selector(550, 450, leftSelector, rightSelector, numbers);
+
+
+    server = new Server();
 
     app.ticker.add(delta => gameLoop(delta));
 }

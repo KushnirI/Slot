@@ -1,4 +1,4 @@
-import {animationRequired, changeAnimRequireTo, button, reels, winScreen} from "./engine";
+import {animationRequired, changeAnimRequireTo, spinButton, winScreen, server, betLines} from "./engine";
 
 /**
  * creates random integer value between min and max
@@ -12,20 +12,19 @@ export function randomInt(min, max) {
     return rand;
 }
 
-//I'm not sure if this function should be here, but I removed it from enjine
 /**
  * start/stop spin depending on animationRequired param
  * @param {number} addSymb amount of added symbols before the spin end
  */
-export function makeSpin(addSymb = 5) {
+export function makeSpin() {
     if(!animationRequired){
         winScreen.hideScreen();
-        reels.clearCurrentWinLines();
+        betLines.removeWinLines();
 
-        reels.start(addSymb);
+        server.start(betLines.activeBetLines);
     } else {
         changeAnimRequireTo(false);
-        button.disable();
+        spinButton.disable();
     }
 
 }

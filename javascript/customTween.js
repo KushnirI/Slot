@@ -8,11 +8,8 @@ export class CustomTween {
         this.start = start;
         this.end = end;
         this.propertyName = propertyName;
+        this.getSpeed(period);
 
-        this.distance = this.end - this.start;
-        this.numOfFrames = period/timeBetweenFrames;
-
-        this.speed = this.distance/this.numOfFrames;
         renderLoop.push(this);
         this.updateRequired = false;
     }
@@ -23,29 +20,50 @@ export class CustomTween {
      */
     update (delta){
         if(this.updateRequired){
-            if (this.obj[this.propertyName] < this.end){
-                this.obj[this.propertyName] += this.speed * delta;
-            }
-            if (this.obj[this.propertyName] >= this.end) {
-                this.obj[this.propertyName] = this.end;
-                this.updateRequired = false;
-                // renderLoop.splice(renderLoop.indexOf(this), 1);
-                this.onComplete();
+            if(this.distance > 0) {
+                if (this.obj[this.propertyName] < this.end){
+                    this.obj[this.propertyName] += this.speed * delta;
+                }
 
+                if ( this.obj[this.propertyName]  >= this.end  ) {
+                    this.obj[this.propertyName] = this.end;
+                    this.updateRequired = false;
+
+                    this.onComplete();
+                }
+            } else {
+                if (this.obj[this.propertyName] > this.end){
+                    this.obj[this.propertyName] += this.speed * delta;
+                }
+
+                if ( this.obj[this.propertyName]  <= this.end  ) {
+                    this.obj[this.propertyName] = this.end;
+                    this.updateRequired = false;
+
+                    this.onComplete();
+                }
             }
+
         }
+    }
+
+    getSpeed (period) {
+        this.distance = this.end - this.start;
+        this.numOfFrames = period/timeBetweenFrames;
+        this.speed = this.distance/this.numOfFrames;
     }
 
     /**
      *
      * @param {number} start start point
      * @param {number} end end point
+     * @param {number} period period of time needed to reach the endpoint
      * @param {function} onComplete callback function
      */
-    play(start, end, onComplete) {
+    play(start, end, period, onComplete) {
         this.start = start;
         this.end = end;
-        // renderLoop.push(this);
+        this.getSpeed(period);
         this.onComplete = onComplete;
         this.updateRequired = true;
     }

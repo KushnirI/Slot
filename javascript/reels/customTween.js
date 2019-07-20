@@ -1,5 +1,5 @@
-import {renderLoop} from "./engine";
-import {timeBetweenFrames} from "./utils";
+import {renderLoop} from "../engine";
+import {timeBetweenFrames} from "../utils";
 
 export class CustomTween {
     constructor(obj, propertyName, start, end, period){
@@ -47,6 +47,10 @@ export class CustomTween {
         }
     }
 
+    /**
+     * generates speed depend on distance and period
+     * @param {number} period period of time needed to reach the endpoint
+     */
     getSpeed (period) {
         this.distance = this.end - this.start;
         this.numOfFrames = period/timeBetweenFrames;

@@ -21,6 +21,7 @@ export class Button extends PIXI.Sprite{
         this.setHitArea(125);
 
         app.stage.addChild(this);
+        Object.assign(this, observableMixin);
     }
 
 

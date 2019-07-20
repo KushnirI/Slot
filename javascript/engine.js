@@ -1,11 +1,11 @@
 import {Button} from "./button";
-import {Reels} from "./reels";
-import {makeSpin} from "./utils";
-import {WinScreen} from "./winScreen";
+import {Reels} from "./reels/reels";
+import {WinScreen} from "./winScreen/winScreen";
 import {Selector} from "./selector";
-import {Events} from "./events";
-import {Server} from "./server";
-import {BetLines} from "./betLines";
+import {ServerMock} from "./main/server";
+import {BetLines} from "./betLines/betLines";
+import {WinHandler} from "./main/winHandler";
+import {gameConfig} from "./main/gameConfig";
 
 document.body.appendChild(app.view);
 
@@ -19,9 +19,9 @@ export let textures,
     reels,
     winScreen,
     betSelector,
-    events,
-    server,
-    betLines;
+    serverMock,
+    betLines,
+    winHandler;
 
 export let renderLoop = [];
 export let animationRequired = false;
@@ -32,15 +32,25 @@ function setup() {
     background = new PIXI.Sprite(textures["background.png"]);
     app.stage.addChild(background);
 
-    events = new Events();
+
     betLines = new BetLines();
     reels = new Reels();
-    spinButton = new Button(400, 450, spinButtonSrc, makeSpin);
-    winScreen = new WinScreen(0,0, gameSize.width,gameSize.height, 0x504f52);
+
+    spinButton = new Button(400, 450, spinButtonSrc, onSpinButtonClicked);
+    spinButton.by({"notify:spinOver": spinButton.enable});
+
+    winScreen = new WinScreen(0,0, gameConfig.gameSize.width, gameConfig.gameSize.height);
     betSelector = new Selector(550, 450, leftSelector, rightSelector, numbers);
 
+    let selectorDisableCheck = betSelector.buttonDisableCheck;
+    betSelector.buttonDisableCheck = function() {
+        selectorDisableCheck.apply(this, arguments);
+        this.fireEvent("notify:betChanged", this.currentValue);
+    };
 
-    server = new Server();
+    winHandler = new WinHandler();
+
+    serverMock = new ServerMock();
 
     app.ticker.add(delta => gameLoop(delta));
 }
@@ -57,4 +67,19 @@ function gameLoop(delta){
  */
 export function changeAnimRequireTo (boolean) {
     animationRequired = boolean;
+}
+
+
+/**
+ * start/stop spin depending on animationRequired param
+ */
+function onSpinButtonClicked() {
+    if(animationRequired){
+        changeAnimRequireTo(false);
+        this.disable();
+        /*quickStop()*/
+    } else {
+        this.fireEvent("notify:spinStart", betSelector.currentValue + 1)
+        // makeSpin()
+    }
 }

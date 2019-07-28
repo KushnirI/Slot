@@ -1,57 +1,54 @@
 import {gameConfig} from "./gameConfig";
+import {observableMixin} from "./observableMixin";
 
-export class WinHandler {
+export class WinSymbols  {
     constructor(){
 
         Object.assign(this, observableMixin);
-        this.by({"notify:serverManager.newResponse" : this.createWinConfig});
+        this.by({"notify:serverManager.newResponse" : this.createSymbolsConfig});
 
     }
 
     /**
      * generate win config depends on server response
-     * @param {object} serverConfig
-     * @param {number} serverConfig.winAmount amount of win point
-     * @param {array} serverConfig.winLines array with win bet lines
-     * @param {array} serverConfig.winSymbols array with win symbols
+     * @param {object} serverResult
+     * @param {number} serverResult.winAmount amount of win point
+     * @param {array} serverResult.winLines array with win bet lines
+     * @param {array} serverResult.winSymbols array with win symbols
      */
-    createWinConfig (serverConfig) {
-        let result = null;
+    createSymbolsConfig (serverResult) {
 
-        if(serverConfig.winAmount > 0){
-
-            result = {};
-            result.matrix = this.createTemplateMatrix();
-            result.winAmount = serverConfig.winAmount;
-            result.winLines = serverConfig.winLines;
-
-            for (let i = 0; i < serverConfig.winSymbols.length; i++){
-                let curLine = serverConfig.winSymbols[i];
-
-                for(let j = 0; j < curLine.length; j++){
-                    let curReel =  result.matrix[j];
-                    let symbIndex = curLine[j];
-
-                    curReel[symbIndex] = true;
-                }
-            }
-
+        if(serverResult.winAmount === 0){
+            return;
         }
 
-        this.fireEvent("notify:winHandler.newResponse", result);
+        const matrix = this.createTemplateMatrix();
+
+        for (let i = 0; i < serverResult.winSymbols.length; i++){
+            const curLine = serverResult.winSymbols[i];
+
+            for(let j = 0; j < curLine.length; j++){
+                const curReel =  matrix[j];
+                const symbIndex = curLine[j];
+
+                curReel[symbIndex] = true;
+            }
+        }
+        this.fireEvent("notify:winSymbolsProcessed", matrix);
+
     }
 
     /**
      * create matrix depends on gameConfig params
-     * @returns {Array} matrix with false params
+     * @returns {array} matrix with false params
      */
     createTemplateMatrix(){
-        let template = [];
+        const template = [];
 
-        let rowsNum = gameConfig.gameSize.rows;
-        let reelsNum = gameConfig.gameSize.reels;
+        const rowsNum = gameConfig.gameSize.rows;
+        const reelsNum = gameConfig.gameSize.reels;
         for (let i = 0; i < reelsNum; i++){
-            let curReel = [];
+            const curReel = [];
 
             for(let j = 0; j < rowsNum; j++){
                 curReel.push(false)

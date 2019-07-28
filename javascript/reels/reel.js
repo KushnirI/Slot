@@ -1,4 +1,4 @@
-import {animationRequired} from "../engine";
+import {areReelsSpinning} from "../engine";
 import {randomInt} from "../utils";
 import {Symbol} from "./symbol";
 import {gameConfig} from "../main/gameConfig";
@@ -19,7 +19,6 @@ export class Reel extends PIXI.Container{
         this.curResultSymbIndex = null;
         this.serverDataReceived = false;
 
-        this.symbolsCounter = this.symbols.length;
     }
 
     /**
@@ -28,13 +27,13 @@ export class Reel extends PIXI.Container{
      * @returns {Array} array with symbols
      */
     addSymbols(symbolsPoint) {
-        let symbols = [];
+        const symbols = [];
 
         for(let i = 0; i < symbolsPoint.length; i++) {
-            let curSymb = symbolsPoint[i];
+            const curSymb = symbolsPoint[i];
 
-            let index = randomInt(0, possibleSymSrc.length - 1);
-            let symbol = new Symbol(possibleSymSrc[index], this.positionConfig);
+            const index = randomInt(0, possibleSymSrc.length - 1);
+            const symbol = new Symbol(possibleSymSrc[index], this.positionConfig);
             symbol.position.set(curSymb.x , curSymb.y);
             this.addChild(symbol);
             symbols.push(symbol);
@@ -44,27 +43,31 @@ export class Reel extends PIXI.Container{
     }
     /**
      * start spinning symbols
-     * @param {function} onComplete callback function, which called when all iterations are finished
+     * @returns {Promise<any>} promise
      */
-    start (onComplete) {
-        this.symbolsBeforeResult = Infinity;
-        this.onComplete = onComplete;
+    start () {
+        return new Promise( resolve => {
+            this.symbolsBeforeResult = Infinity;
 
-        this.symbols.forEach((symbol) => {
-            symbol.startSpin( this.onStartBounceFinished.bind(this) );
+            Promise.all(this.symbols.map(sym => {
+                return sym.startSpin();
+            }))
+                .then(resolve)
+                .then(this.moveLastSymbOnTop.bind(this));
         })
+
     }
 
-    /**
-     *
-     * @param {array} betResult array with result for current bet
-     * @param {number} symbsBfResult amount of iteration before result
-     */
-    addServerValues (betResult, symbsBfResult) {
-        this.symbolsBeforeResult = symbsBfResult;
-        this.resultSymbols = betResult;
-        this.curResultSymbIndex = this.resultSymbols.length - 1;
-        this.serverDataReceived = true;
+    startStopSequence(betResult, symbsBfResult) {
+        return new Promise( resolve => {
+            this.symbolsBeforeResult = symbsBfResult;
+            this.resultSymbols = betResult;
+            this.curResultSymbIndex = this.resultSymbols.length - 1;
+            this.serverDataReceived = true;
+
+            this.resolveChain = resolve
+        })
+
     }
 
     /**
@@ -72,8 +75,8 @@ export class Reel extends PIXI.Container{
      * @param {boolean} useRandomSymb if true add randomSymbol
      */
     moveLastSymbOnTop(useRandomSymb = true){
-        let lastIndex = this.symbols.length - 1;
-        let lastSymbol = this.symbols[lastIndex];
+        const lastIndex = this.symbols.length - 1;
+        const lastSymbol = this.symbols[lastIndex];
         let newIndex;
 
         if(useRandomSymb){
@@ -88,21 +91,11 @@ export class Reel extends PIXI.Container{
 
         this.symbols.unshift(this.symbols.pop());
 
-        this.symbols.forEach((symbol) => {
-            symbol.moveOneSlot( this.onSymbolMovedOneSlot.bind(this) );
-        })
-    }
+        Promise.all(this.symbols.map( symbol => {
+            return symbol.moveOneSlot();
+        }))
+            .then( this.onSymbolMovedOneSlot.bind(this));
 
-    /**
-     * when all symbols are finished start bounce, reset the symbolsCounter
-     * and call moveLastSymbOnTop
-     */
-    onStartBounceFinished () {
-        this.symbolsCounter--;
-        if (this.symbolsCounter === 0){
-            this.symbolsCounter = this.symbols.length;
-            this.moveLastSymbOnTop();
-        }
     }
 
     /**
@@ -111,35 +104,21 @@ export class Reel extends PIXI.Container{
      * if more iterations are required, call this.moveLastSymbOnTop
      */
     onSymbolMovedOneSlot() {
-        this.symbolsCounter--;
-        if (this.symbolsCounter === 0){
-            this.symbolsCounter = this.symbols.length;
-            this.symbolsBeforeResult--;
+        this.symbolsBeforeResult--;
 
-            if (this.symbolsBeforeResult > 0 && animationRequired || !this.serverDataReceived) {
-                this.moveLastSymbOnTop();
+        if (this.symbolsBeforeResult > 0 && areReelsSpinning || !this.serverDataReceived) {
+            this.moveLastSymbOnTop();
 
-            } else if(this.curResultSymbIndex >= 0) {
-                this.moveLastSymbOnTop(false);
-                this.curResultSymbIndex--;
-            }else {
-                this.symbols.forEach((symbol) => {
-                    symbol.endSpin( this.onEndBounceFinished.bind(this) );
-                });
+        } else if(this.curResultSymbIndex >= 0) {
+            this.moveLastSymbOnTop(false);
+            this.curResultSymbIndex--;
+        }else {
 
-            }
-        }
-    }
+            Promise.all(this.symbols.map( symbol => {
+                return symbol.endSpin();
+            }))
+                .then(this.onSpinOver.bind(this))
 
-    /**
-     * when all symbols are finished end bounce, reset the symbolsCounter
-     * and call onSpinOver
-     */
-    onEndBounceFinished () {
-        this.symbolsCounter--;
-        if (this.symbolsCounter === 0){
-            this.symbolsCounter = this.symbols.length;
-            this.onSpinOver();
         }
     }
 
@@ -149,7 +128,24 @@ export class Reel extends PIXI.Container{
     onSpinOver() {
         this.serverDataReceived = false;
         this.resultSymbols = [];
-        this.onComplete();
+        this.resolveChain();
+    }
+
+    showWinSymb (symbols) {
+        for(let i = 0; i < symbols.length; i++){
+
+            if(symbols[i]){
+                this.symbols[i].playWinAnimation()
+            } else {
+                this.symbols[i].playLossAnimation()
+            }
+        }
+    }
+
+    playIdle() {
+        this.symbols.forEach( symbol => {
+            symbol.playIdle();
+        })
     }
 
 }

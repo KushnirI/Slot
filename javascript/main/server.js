@@ -1,17 +1,16 @@
 import {randomInt} from "../utils";
 import {gameConfig} from "./gameConfig";
-
+import {observableMixin} from "./observableMixin";
 
 export class ServerMock {
     constructor() {
-        this.reelsetsList = gameConfig.addReelsets();
-        this.betLines = gameConfig.activeBetLines;
-        this.spinResult = [];
+        this.reelsetsList = gameConfig.reelsets;
+        this.betLines = gameConfig.betLines;
+        this.reelsLength = gameConfig.gameSize.rows;
         Object.assign(this, observableMixin);
 
         this.by({"notify:spinStart" : this.start});
 
-        this.generatedResponse = null;
     }
 
     /**
@@ -19,12 +18,11 @@ export class ServerMock {
      * @param {number} betSize multiplier for win points
      */
     start(betSize){
-        this.currentReelset = this.selectReelset(this.reelsetsList);
-        this.spinResult = this.selectPositions(this.currentReelset);
-        this.generatedResponse = this.checkBetLines (this.spinResult, betSize);
+        const currentReelset = this.selectReelset(this.reelsetsList);
+        const spinResult = this.selectPositions(currentReelset);
+        const generatedResponse = this.checkBetLines (spinResult, betSize);
         setTimeout(() => {
-            this.fireEvent("notify:serverManager.newResponse", this.generatedResponse);
-            this.generatedResponse = null;
+            this.fireEvent("notify:serverManager.newResponse", generatedResponse);
         },1000);
 
     }
@@ -35,29 +33,29 @@ export class ServerMock {
      * @returns {array} selected reelset
      */
     selectReelset (reelsetsList) {
-        let index = randomInt(0, reelsetsList.length - 1);
+        const index = randomInt(0, reelsetsList.length - 1);
         return reelsetsList[index];
     }
 
     /**
      * randomly selects start positions on each reel and generate new array with next 3 symbols
      * @param {array} currentReelset array with possible values for each reel
-     * @returns {Array} two-levels array with spin result
+     * @returns {Array} 2d array with spin result
      */
     selectPositions (currentReelset) {
 
         const spinResult = [];
 
         for(let i = 0; i < currentReelset.length; i++){
-            let curSet = currentReelset[i];
+            const curSet = currentReelset[i];
 
-            // 3 symbols after startPoint are required
-            let startPoint = randomInt(0, curSet.length - 3);
-            let curReel = [];
 
-            curReel.push(curSet[startPoint]);
-            curReel.push(curSet[startPoint + 1]);
-            curReel.push(curSet[startPoint + 2]);
+            const startPoint = randomInt(0, curSet.length - this.reelsLength);
+            const curReel = [];
+
+            for(let j = 0; j < this.reelsLength; j++) {
+                curReel.push(curSet[startPoint + j]);
+            }
 
             spinResult.push(curReel);
         }
@@ -72,39 +70,42 @@ export class ServerMock {
      *          {number} resultConfig.winAmount amount of win point
      *          {array} resultConfig.winLines array with win bet lines
      *          {array} resultConfig.winSymbols array with win symbols
-     *          {array} resultConfig.spinResult two-levels array with spin result
+     *          {array} resultConfig.spinResult 2d array with spin result
      */
     checkBetLines (spinResult, betSize){
 
         let winPoints = 0;
-        let winSymbols = [];
-        let winLines = [];
-        let resultConfig = {};
+        const winSymbols = [];
+        const winLines = [];
+
+        const response = {};
 
         for (let i = 0; i < this.betLines.length; i++) {
-            let currentLine  = this.betLines[i];
+            const currentLine  = this.betLines[i];
             let symbsMatched = 1;
 
-            let symbolNum = [];
+            const onReelPositions = [];
 
-            for(let j = 0; j < spinResult.length - 1; j++){
-                if (spinResult[j][currentLine[j]] === spinResult[j + 1][currentLine[j+1]]) {
+            const generatedLine = spinResult.map( (reel, i) => {
+                const curIndex = currentLine[i];
+                onReelPositions.push(curIndex);
+                return reel[curIndex];
+            });
+
+            for(let j = 0; j < generatedLine.length - 1; j++){
+                if (generatedLine[j] === generatedLine[j+1]) {
+
                     symbsMatched +=1;
-                    if (symbsMatched < 3){
-                        symbolNum.push(currentLine[j]);
-                        symbolNum.push(currentLine[j+1]);
-
-                    } else {
-                        symbolNum.push(currentLine[j+1]);
-                    }
 
                 } else {
                     break;
                 }
             }
 
+
             if (symbsMatched > 2) {
-                winSymbols.push(symbolNum);
+
+                winSymbols.push(onReelPositions.slice(0, symbsMatched));
                 winLines.push(i);
 
                 if(symbsMatched === 3){
@@ -120,14 +121,14 @@ export class ServerMock {
                 }
             }
 
-            symbsMatched = 1;
         }
 
-        resultConfig.winAmount =  winPoints * betSize;
-        resultConfig.winLines = winLines;
-        resultConfig.winSymbols = winSymbols;
-        resultConfig.spinResult = spinResult;
+        response.winAmount =  winPoints * betSize;
+        response.winLines = winLines;
+        response.winSymbols = winSymbols;
+        response.spinResult = spinResult;
 
-        return resultConfig;
+        return response;
+
     }
 }

@@ -2,11 +2,9 @@ import {textures} from "../engine";
 import {CustomTween} from "./customTween";
 import {betLines} from "../engine";
 
-
 export class Symbol extends PIXI.Sprite{
     constructor(textureSrc, config){
         super(textures[textureSrc]);
-        Object.assign(this, observableMixin);
 
         this.width = config.symbolDimensions.width;
         this.height = config.symbolDimensions.height;
@@ -15,12 +13,10 @@ export class Symbol extends PIXI.Sprite{
         this.type = textureSrc;
         this.anchor.set(0.5);
 
-        this.speed = 160;
+        this.speed = config.symbolSpeed;
 
         this.startScale = this.scale._x;
         this.endScale = this.startScale*1.25;
-
-        this.by({"notify:betChanged" : this.playIdle});
 
         this.tween = new CustomTween(this, "y", this.y, this.y +  this.slotLength, this.speed);
         this.bounceTween = new CustomTween(this, "y", this.y, this.y - this.height/2, this.speed*2/3);
@@ -30,45 +26,41 @@ export class Symbol extends PIXI.Sprite{
     }
 
     /**
-     *
-     * @param {function} callback callback function called when bounceTweens are finished
+     * sets default symbols params before next spin and makes up/down bounce using twin
+     * @returns {Promise<any>} promise
      */
-    startSpin (callback) {
-        this.playIdle();
-        this.startCallback = callback;
-        this.bounceTween.play(this.y, this.y - this.height/2,this.speed*3/4, this.bounceDown.bind(this));
+    startSpin () {
+        return new Promise( resolve => {
+            this.playIdle();
+            this.bounceTween.play(this.y, this.y - this.height/2,this.speed*3/4, () => {})
+                .then(() => this.bounceTween.play(this.y, this.y + this.height/2,this.speed*2/3, resolve))
+
+        })
     }
 
-    /**
-     * return symbol to start position after upBounce
-     */
-    bounceDown () {
-        this.bounceTween.play(this.y, this.y + this.height/2,this.speed*2/3, this.startCallback);
-    }
 
     /**
-     * sets default symbols params before next spin
      * evenly change position by one slot using tween
-     * @param {function} onComplete callback function called when tween is finished
+     * @returns {Promise<any>} promise
      */
-    moveOneSlot (onComplete) {
-        this.tween.play(this.y, this.y + this.slotLength, this.speed, onComplete);
+    moveOneSlot () {
+        return new Promise( resolve => {
+            this.tween.play(this.y, this.y + this.slotLength, this.speed, resolve);
+        });
     }
 
     /**
-     *
-     * @param {function} callback function called when bounceTweens are finished
+     * makes down/up bounce using twin
+     * @returns {Promise<any>} promise
      */
-    endSpin(callback) {
-        this.endCallback = callback;
-        this.bounceTween.play(this.y, this.y + this.height/2,this.speed*2/3, this.bounceUp.bind(this));
-    }
+    endSpin() {
+        return new Promise( resolve => {
+            this.bounceTween.play(this.y, this.y + this.height/2,this.speed*2/3, () => {})
+                .then( () => {
+                    this.bounceTween.play(this.y, this.y - this.height/2,this.speed*2/3, resolve);
+                })
+        })
 
-    /**
-     * return symbol to start position after downBounce
-     */
-    bounceUp () {
-        this.bounceTween.play(this.y, this.y - this.height/2,this.speed*2/3, this.endCallback);
     }
 
     /**
@@ -96,8 +88,6 @@ export class Symbol extends PIXI.Sprite{
         this.scale.set(value);
     }
 
-
-
     /**
      * animation for win symbols
      */
@@ -111,22 +101,23 @@ export class Symbol extends PIXI.Sprite{
     scaleUp () {
         this.scaleTween.play(this.startScale, this.endScale, this.speed*3, this.scaleDown.bind(this));
     }
+
     /**
      * evenly scales symbol down using tween
      */
     scaleDown () {
-        this.scaleTween.play(this.endScale, this.startScale, this.speed*3, this.stub.bind(this));
-
+        this.scaleTween.play(this.endScale, this.startScale, this.speed*3, () => {});
     }
 
     /**
-     * saves current parent params and change parent to betLines to change the layer
+     * saves current parent params to be able to restore it later
+     * and change parent to betLines to change the layer
      */
     playLossAnimation() {
 
         this.parentReel = this.parent;
-        let globalX = this.getGlobalPosition().x;
-        let globalY = this.getGlobalPosition().y;
+        const globalX = this.getGlobalPosition().x;
+        const globalY = this.getGlobalPosition().y;
         this.localX = this.x;
         this.localY = this.y;
 
@@ -149,7 +140,4 @@ export class Symbol extends PIXI.Sprite{
         this.parentReel = null;
     }
 
-    stub () {
-        //stub
-    }
 }

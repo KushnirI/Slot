@@ -1,5 +1,5 @@
 export const gameConfig  = {
-    activeBetLines : [
+    betLines : [
         [0,0,0,0,0],
         [1,1,1,1,1],
         [2,2,2,2,2],
@@ -9,12 +9,8 @@ export const gameConfig  = {
         [1,2,1,2,1]
     ],
 
-    /**
-     * create and return reelSets
-     * @returns {array} two-levels array with reelSets
-     */
-    addReelsets : function () {
-        const reelSets = [
+
+    reelsets : [
             [
                 [1,0,2,0,2,0,1,0,2],
                 [0,0,2,1,0,1,2,0,2],
@@ -36,9 +32,8 @@ export const gameConfig  = {
                 [1,0,2,2,2,1,0,2,0],
                 [1,1,0,0,2,0,0,1,2]
             ]
-        ];
-        return reelSets;
-    },
+    ],
+
 
     gameSize : {
         width: 800,
@@ -49,31 +44,34 @@ export const gameConfig  = {
 
     reelsPosition : {
         topOffset : 10,
+        leftOffset : 15,
 
         reels : {
             left: 80,
-            slotLength: 133,
-            symbolDimensions: {width: 125, height: 125},
+            slotLength: 134,
+            symbolDimensions: {width: 110, height: 110},
             visibleSymbNum: 3,
-            symbolsNumber: 4
+            symbolsNumber: 4,
+            symbolSpeed : 160
         },
 
         //can't find the solution how to set context here
         reelsPoints : [
-            {x : 80, y : 133/2},
-            {x : 80 * 3, y : 133/2},
-            {x : 80 * 5, y : 133/2},
-            {x : 80 * 7, y : 133/2},
-            {x : 80 * 9, y : 133/2}
+            {x : 80, y : 134/2},
+            {x : 80 * 3, y : 134/2},
+            {x : 80 * 5, y : 134/2},
+            {x : 80 * 7, y : 134/2},
+            {x : 80 * 9, y : 134/2}
         ],
 
         symbolsPoint : [
             {x : 0, y : 0},
-            {x : 0, y : 133},
-            {x : 0, y : 133 * 2},
-            {x : 0, y : 133 * 3},
+            {x : 0, y : 134},
+            {x : 0, y : 134 * 2},
+            {x : 0, y : 134 * 3},
 
         ]
     },
+
 
 };

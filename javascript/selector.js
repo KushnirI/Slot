@@ -15,10 +15,7 @@ export class Selector extends PIXI.Container{
         this.number = this.addNumber();
 
         this.addChild(this.minusButton, this.plusButton, this.number);
-
         this.position.set(x, y);
-
-
         app.stage.addChild(this);
     }
 
@@ -64,6 +61,4 @@ export class Selector extends PIXI.Container{
 
         return number
     }
-
-
 }

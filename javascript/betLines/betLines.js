@@ -6,11 +6,11 @@ export class BetLines extends PIXI.Container{
     constructor() {
         super();
 
-        this.linePoints = this.addLinePoints();
+        Object.assign(this, observableMixin);
 
+        this.linePoints = this.addLinePoints();
         this.allLines = this.addLines(this.linePoints);
 
-        Object.assign(this, observableMixin);
         this.by({
             "notify:spinStart" : this.hideWinLines,
             "notify:spinOver" : this.showWinLines,
@@ -18,7 +18,6 @@ export class BetLines extends PIXI.Container{
         });
 
         app.stage.addChild(this);
-
     }
 
     /**
@@ -26,7 +25,6 @@ export class BetLines extends PIXI.Container{
      * @returns {Array} array with line points
      */
     addLinePoints () {
-
         const config = Object.assign({}, gameConfig);
         const betLines = config.betLines;
         const positions = config.reelsPosition;
@@ -77,12 +75,11 @@ export class BetLines extends PIXI.Container{
      * @param {array} config.winLines array with win lines
      */
     showWinLines(config) {
-        if( !config || !Array.isArray(config.winLines) ){
-          return
-        }
-        for(let i = 0; i < config.winLines.length; i++){
-            const curLine = config.winLines[i];
-            this.allLines[curLine].showWinLine();
+        if(config || Array.isArray(config.winLines) ){
+            for(let i = 0; i < config.winLines.length; i++){
+                const curLine = config.winLines[i];
+                this.allLines[curLine].showWinLine();
+            }
         }
     }
 

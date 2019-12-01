@@ -1,8 +1,8 @@
 export class Line extends PIXI.Graphics {
     constructor ( arrConfig ) {
         super();
-        this.lineStyle(3, 0x00ff00, 0.5);
 
+        this.lineStyle(3, 0x00ff00, 0.5);
         this.createLineByPoints(arrConfig);
         this.hideWinLine();
     }

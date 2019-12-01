@@ -46,15 +46,11 @@ export class Reel extends PIXI.Container{
      * @returns {Promise<any>} promise
      */
     start () {
-        return new Promise( resolve => {
-            this.symbolsBeforeResult = Infinity;
-
-            Promise.all(this.symbols.map(sym => {
-                return sym.startSpin();
-            }))
-                .then(resolve)
-                .then(this.moveLastSymbOnTop.bind(this));
-        })
+        this.symbolsBeforeResult = Infinity;
+        return Promise.all(this.symbols.map(sym => {
+            return sym.startSpin();
+        }))
+            .then(() => this.doSpin());
 
     }
 
@@ -70,11 +66,33 @@ export class Reel extends PIXI.Container{
 
     }
 
+
+    doSpin(useRandomSymb = true) {
+        this.moveOneSlot(useRandomSymb)
+            .then(() => {
+                this.symbolsBeforeResult--;
+
+                if (this.symbolsBeforeResult > 0 && areReelsSpinning || !this.serverDataReceived) {
+                    this.doSpin();
+
+                } else if(this.curResultSymbIndex >= 0) {
+                    this.doSpin(false);
+                    this.curResultSymbIndex--;
+                }else {
+                    Promise.all(this.symbols.map( symbol => {
+                        return symbol.endSpin();
+                    }))
+                        .then(() => this.onSpinOver())
+                }
+            })
+    }
+
     /**
      *
      * @param {boolean} useRandomSymb if true add randomSymbol
+     * @returns {Promise<any>} promise
      */
-    moveLastSymbOnTop(useRandomSymb = true){
+    moveOneSlot(useRandomSymb){
         const lastIndex = this.symbols.length - 1;
         const lastSymbol = this.symbols[lastIndex];
         let newIndex;
@@ -91,35 +109,9 @@ export class Reel extends PIXI.Container{
 
         this.symbols.unshift(this.symbols.pop());
 
-        Promise.all(this.symbols.map( symbol => {
+        return Promise.all(this.symbols.map( symbol => {
             return symbol.moveOneSlot();
         }))
-            .then( this.onSymbolMovedOneSlot.bind(this));
-
-    }
-
-    /**
-     * when each symbol moved one slot, it reduces symbolsCounter
-     * when all symbols are finished, reset the counter
-     * if more iterations are required, call this.moveLastSymbOnTop
-     */
-    onSymbolMovedOneSlot() {
-        this.symbolsBeforeResult--;
-
-        if (this.symbolsBeforeResult > 0 && areReelsSpinning || !this.serverDataReceived) {
-            this.moveLastSymbOnTop();
-
-        } else if(this.curResultSymbIndex >= 0) {
-            this.moveLastSymbOnTop(false);
-            this.curResultSymbIndex--;
-        }else {
-
-            Promise.all(this.symbols.map( symbol => {
-                return symbol.endSpin();
-            }))
-                .then(this.onSpinOver.bind(this))
-
-        }
     }
 
     /**
@@ -147,5 +139,4 @@ export class Reel extends PIXI.Container{
             symbol.playIdle();
         })
     }
-
 }

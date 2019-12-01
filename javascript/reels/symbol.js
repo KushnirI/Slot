@@ -26,7 +26,7 @@ export class Symbol extends PIXI.Sprite{
     }
 
     /**
-     * sets default symbols params before next spin and makes up/down bounce using twin
+     * sets default symbols params before next spin and makes up/down bounce using tween
      * @returns {Promise<any>} promise
      */
     startSpin () {
@@ -50,7 +50,7 @@ export class Symbol extends PIXI.Sprite{
     }
 
     /**
-     * makes down/up bounce using twin
+     * makes down/up bounce using tween
      * @returns {Promise<any>} promise
      */
     endSpin() {

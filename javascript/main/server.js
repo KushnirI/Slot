@@ -73,7 +73,6 @@ export class ServerMock {
      *          {array} resultConfig.spinResult 2d array with spin result
      */
     checkBetLines (spinResult, betSize){
-
         let winPoints = 0;
         const winSymbols = [];
         const winLines = [];
@@ -84,11 +83,11 @@ export class ServerMock {
             const currentLine  = this.betLines[i];
             let symbsMatched = 1;
 
-            const onReelPositions = [];
+            const positionsOnReels = [];
 
             const generatedLine = spinResult.map( (reel, i) => {
                 const curIndex = currentLine[i];
-                onReelPositions.push(curIndex);
+                positionsOnReels.push(curIndex);
                 return reel[curIndex];
             });
 
@@ -105,7 +104,7 @@ export class ServerMock {
 
             if (symbsMatched > 2) {
 
-                winSymbols.push(onReelPositions.slice(0, symbsMatched));
+                winSymbols.push(positionsOnReels.slice(0, symbsMatched));
                 winLines.push(i);
 
                 if(symbsMatched === 3){

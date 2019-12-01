@@ -6,15 +6,10 @@ const app = new PIXI.Application ({
 
 // eslint-disable-next-line no-unused-vars
 const possibleSymSrc = [
-    /*"agent.png",
-    "batman.png",*/
     "girl.png",
     "ironMan.png",
     "robot.png",
-    /*"deadPool.png",
-    "captain.png",
-    "hulk.png",
-    "spiderW.png"*/
+
 ];
 
 // eslint-disable-next-line no-unused-vars

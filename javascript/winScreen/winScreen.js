@@ -30,7 +30,8 @@ export class WinScreen extends PIXI.Graphics{
             fontSize: 36,
             fill: "white"
         };
-        message.position.set(x + width/2 - 130, y + height/2 - 18 );
+        message.anchor.set(0.5);
+        message.position.set(x + width/2, y + height/2);
 
         return message;
     }
@@ -45,6 +46,7 @@ export class WinScreen extends PIXI.Graphics{
             const winMsg = "You won " + config.winAmount + " !!!";
             this.visible = true;
             this.message.text = winMsg;
+            console.error(this.message);
         }
     }
 
@@ -54,5 +56,4 @@ export class WinScreen extends PIXI.Graphics{
     hideScreen () {
         this.visible = false;
     }
-
 }

@@ -43,7 +43,6 @@ export class CustomTween {
                     this.onComplete();
                 }
             }
-
         }
     }
 
@@ -77,6 +76,4 @@ export class CustomTween {
             this.updateRequired = true;
         })
     }
-
-
 }

@@ -75,14 +75,10 @@ export class Reels extends PIXI.Container{
      * @returns {Promise<any>} promise
      */
     startReelsSpin () {
-        return new Promise( resolve => {
-            changeReelsSpinningTo(true);
-
-            Promise.all( this.allReels.map( reel => {
-                return reel.start()
-            }))
-                .then(resolve)
-        })
+        changeReelsSpinningTo(true);
+        return Promise.all( this.allReels.map( reel => {
+            return reel.start();
+        }))
     }
 
     /**
@@ -93,26 +89,17 @@ export class Reels extends PIXI.Container{
      */
     serverResponseReceived(resultConfig) {
         this.resultConfig = resultConfig;
-        this.serverResponseResolve()
+        this.serverResponseResolve();
     }
-
-    serverResponseResolve(){}
 
     /**
      * @param {number} symbsBfResult amount of random symbols before result
      * @returns {Promise<any>} promise
      */
     startStopSequence ( symbsBfResult = 6) {
-        return new Promise( resolve => {
-
-            Promise.all(this.allReels.map( (reel, i) => {
+            return Promise.all(this.allReels.map( (reel, i) => {
                 return reel.startStopSequence( this.resultConfig.spinResult[i], symbsBfResult+i*2);
             }))
-                .then(resolve)
-
-        })
-
-
     }
 
     /**

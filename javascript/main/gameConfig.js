@@ -55,7 +55,6 @@ export const gameConfig  = {
             symbolSpeed : 160
         },
 
-        //can't find the solution how to set context here
         reelsPoints : [
             {x : 80, y : 134/2},
             {x : 80 * 3, y : 134/2},

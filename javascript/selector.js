@@ -1,7 +1,6 @@
 import {Button} from "./button";
 import {textures} from "./engine";
-
-
+import {observableMixin} from "./main/observableMixin";
 
 export class Selector extends PIXI.Container{
     constructor(x, y, leftSrc, rightSrc, possibleValues) {
@@ -16,10 +15,7 @@ export class Selector extends PIXI.Container{
         this.number = this.addNumber();
 
         this.addChild(this.minusButton, this.plusButton, this.number);
-
         this.position.set(x, y);
-
-
         app.stage.addChild(this);
     }
 
@@ -49,6 +45,7 @@ export class Selector extends PIXI.Container{
         } else {
             this.minusButton.enable();
         }
+        this.fireEvent("notify:betChanged", this.currentValue);
     }
 
     /**
@@ -64,6 +61,4 @@ export class Selector extends PIXI.Container{
 
         return number
     }
-
-
 }

@@ -1,4 +1,5 @@
 import {textures} from "./engine";
+import {observableMixin} from "./main/observableMixin";
 
 export class Button extends PIXI.Sprite{
     constructor(x, y, buttonTextures, callback){

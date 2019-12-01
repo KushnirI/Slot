@@ -35,11 +35,11 @@ module.exports = {
         "max-statements-per-line": ["error", {max: 1}],
         "no-alert": 1,
         "block-spacing": 1,
-        "no-magic-numbers": 1,
+        "no-magic-numbers": 0,
 
         // Removed rules
         "no-undef": 0,
         "no-console": 0,
         "vars-on-top": 0,
     }
-}
+};

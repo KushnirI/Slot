@@ -6,15 +6,10 @@ const app = new PIXI.Application ({
 
 // eslint-disable-next-line no-unused-vars
 const possibleSymSrc = [
-    /*"agent.png",
-    "batman.png",*/
     "girl.png",
     "ironMan.png",
     "robot.png",
-    /*"deadPool.png",
-    "captain.png",
-    "hulk.png",
-    "spiderW.png"*/
+
 ];
 
 // eslint-disable-next-line no-unused-vars
@@ -52,14 +47,6 @@ const numbers = [
 ];
 
 // eslint-disable-next-line no-unused-vars
-let betLines = [
-    [0,0,0,0,0],
-    [1,1,1,1,1],
-    [2,2,2,2,2],
-    [0,1,2,1,0],
-    [2,1,0,1,2]
-];
-
 const events = {
 
     events : {},
@@ -82,46 +69,14 @@ const events = {
      * @param {array} args arguments for callback function
      */
     fireEvent : function (eventName, args){
-        let listeners = this.events[eventName];
+        const listeners = this.events[eventName];
 
         for(let i = 0; i < listeners.length; i++) {
-            let listener = listeners[i];
-            let handler = listener.eventHandlers[eventName];
+            const listener = listeners[i];
+            const handler = listener.eventHandlers[eventName];
 
             handler.apply(listener, args)
         }
 
-    }
-};
-
-// eslint-disable-next-line no-unused-vars
-const observableMixin = {
-    /**
-     *
-     * @param {object} params {Object.<string, function>}
-     */
-    by : function (params) {
-        if( !this.eventHandlers ){
-            this.eventHandlers = {};
-        }
-
-        for( let eventName in params) {
-            if( params.hasOwnProperty(eventName) ) {
-                if ( !this.eventHandlers[eventName]){
-                    events.addListener(eventName, this);
-                }
-
-                this.eventHandlers[eventName] = params[eventName] ;
-            }
-        }
-    },
-
-    /**
-     *
-     * @param {string} eventName eventName
-     * @param {array} args array with arguments
-     */
-    fireEvent : function(eventName, ...args){
-        events.fireEvent(eventName, args);
     }
 };

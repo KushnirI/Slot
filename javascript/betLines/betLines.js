@@ -1,15 +1,16 @@
 import {Line} from "./line";
 import {gameConfig} from "../main/gameConfig";
+import {observableMixin} from "../main/observableMixin";
 
 export class BetLines extends PIXI.Container{
     constructor() {
         super();
 
-        this.linePoints = this.addLinePoints();
+        Object.assign(this, observableMixin);
 
+        this.linePoints = this.addLinePoints();
         this.allLines = this.addLines(this.linePoints);
 
-        Object.assign(this, observableMixin);
         this.by({
             "notify:spinStart" : this.hideWinLines,
             "notify:spinOver" : this.showWinLines,
@@ -17,7 +18,6 @@ export class BetLines extends PIXI.Container{
         });
 
         app.stage.addChild(this);
-
     }
 
     /**
@@ -25,21 +25,21 @@ export class BetLines extends PIXI.Container{
      * @returns {Array} array with line points
      */
     addLinePoints () {
+        const config = Object.assign({}, gameConfig);
+        const betLines = config.betLines;
+        const positions = config.reelsPosition;
+        const topOffset = positions.topOffset + positions.reels.slotLength/2;
 
-        let betLines = gameConfig.activeBetLines;
-        let positions = gameConfig.reelsPosition;
-        let topOffset = positions.topOffset + positions.reels.slotLength/2;
-
-        let linePositions = [];
+        const linePositions = [];
 
         for(let i = 0; i < betLines.length; i++) {
-            let curBetLine = betLines[i];
-            let curLinePoints = [];
+            const curBetLine = betLines[i];
+            const curLinePoints = [];
 
             for(let j = 0; j < curBetLine.length; j++){
 
-                let xPoint = positions.reelsPoints[j].x;
-                let yPoint = positions.symbolsPoint[curBetLine[j]].y + topOffset;
+                const xPoint = positions.reelsPoints[j].x;
+                const yPoint = positions.symbolsPoint[curBetLine[j]].y + topOffset;
 
                 curLinePoints.push({x: xPoint, y: yPoint});
             }
@@ -52,16 +52,15 @@ export class BetLines extends PIXI.Container{
 
     /**
      * create lines using lines points and add it to array
-     * @param {array} linePoints array with pints for lines
+     * @param {array} linePoints array with points for lines
      * @returns {Array} array with lines
      */
     addLines (linePoints) {
-        let allLines = [];
+        const allLines = [];
         for(let i = 0; i < linePoints.length; i++) {
-            let betLine;
-            let config = linePoints[i];
 
-            betLine = new Line(config);
+            const config = linePoints[i];
+            const betLine = new Line(config);
 
             allLines.push(betLine);
             this.addChild(betLine);
@@ -76,9 +75,9 @@ export class BetLines extends PIXI.Container{
      * @param {array} config.winLines array with win lines
      */
     showWinLines(config) {
-        if(config){
+        if(config || Array.isArray(config.winLines) ){
             for(let i = 0; i < config.winLines.length; i++){
-                let curLine = config.winLines[i];
+                const curLine = config.winLines[i];
                 this.allLines[curLine].showWinLine();
             }
         }

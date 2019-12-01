@@ -1,6 +1,7 @@
-import {changeAnimRequireTo} from "../engine";
+import {changeReelsSpinningTo} from "../engine";
 import {Reel} from "./reel"
 import {gameConfig} from "../main/gameConfig";
+import {observableMixin} from "../main/observableMixin";
 
 export class Reels extends PIXI.Container{
     constructor() {
@@ -11,7 +12,6 @@ export class Reels extends PIXI.Container{
         this.allReels = this.addReels();
         this.mask = this.addMask();
 
-        this.reelsCounter = this.allReels.length;
         this.winAnimRequired = false;
         this.resultConfig = null;
 
@@ -21,10 +21,10 @@ export class Reels extends PIXI.Container{
 
         this.by({
             "notify:spinStart" : this.start,
-            "notify:serverManager.newResponse" : this.addServerValues,
-            "notify:winHandler.newResponse": this.addWinHandlerValues
+            "notify:serverManager.newResponse" : this.serverResponseReceived,
+            "notify:winSymbolsProcessed": this.addWinHandlerValues,
+            "notify:betChanged" : this.playIdle
         })
-
     }
 
     /**
@@ -58,14 +58,27 @@ export class Reels extends PIXI.Container{
     }
 
     /**
-     * start spinning reels
+     * processing the spin
      */
     start() {
-        changeAnimRequireTo(true);
+        Promise.all([
+            this.startReelsSpin(),
+            new Promise(resolve => this.serverResponseResolve = resolve)
+        ])
+            .then(() => this.startStopSequence())
+            .then(() => this.onSpinComplete())
 
-        for(let i = 0; i < this.allReels.length; i++ ){
-            this.allReels[i].start( this.onReelStopped.bind(this) );
-        }
+    }
+
+    /**
+     * start spinning reels
+     * @returns {Promise<any>} promise
+     */
+    startReelsSpin () {
+        changeReelsSpinningTo(true);
+        return Promise.all( this.allReels.map( reel => {
+            return reel.start();
+        }))
     }
 
     /**
@@ -73,13 +86,20 @@ export class Reels extends PIXI.Container{
      * @param {object} resultConfig resultConfig from server
      * @param {array} resultConfig.spinResult array with bet result for each reel
      * @param {number} resultConfig.winAmount win points on current bet
-     * @param {number} symbsBfResult amount of random symbols before result
      */
-    addServerValues (resultConfig, symbsBfResult = 6) {
+    serverResponseReceived(resultConfig) {
+        this.resultConfig = resultConfig;
+        this.serverResponseResolve();
+    }
 
-        for(let i = 0; i < this.allReels.length; i++ ){
-            this.allReels[i].addServerValues(resultConfig.spinResult[i], symbsBfResult+i, this.onReelStopped.bind(this));
-        }
+    /**
+     * @param {number} symbsBfResult amount of random symbols before result
+     * @returns {Promise<any>} promise
+     */
+    startStopSequence ( symbsBfResult = 6) {
+            return Promise.all(this.allReels.map( (reel, i) => {
+                return reel.startStopSequence( this.resultConfig.spinResult[i], symbsBfResult+i*2);
+            }))
     }
 
     /**
@@ -90,49 +110,45 @@ export class Reels extends PIXI.Container{
         if(resultConfig) {
             this.winAnimRequired = true;
         }
-        this.resultConfig = resultConfig;
+        this.symbolsResultConfig = resultConfig;
     }
 
     /**
      * when each reel finished spin, it reduces reelsCounter
      * when all reels are finished, reset the counter, and check bet lines
      */
-    onReelStopped () {
-        this.reelsCounter--;
-        if (this.reelsCounter === 0) {
-            this.reelsCounter = this.allReels.length;
-            changeAnimRequireTo(false);
+    onSpinComplete () {
+        changeReelsSpinningTo(false);
 
-            this.showWinAnimation(this.resultConfig);
+        setTimeout( () => {
+            this.showWinAnimation(this.symbolsResultConfig);
             this.fireEvent("notify:spinOver", this.resultConfig);
-        }
+        },100);
+
     }
 
     /**
      * if winAnimRequired, show win/loss animation for each symbol
-     * @param {object} resultConfig
-     * @param {array} resultConfig.matrix two-levels array with true/false param
+     * @param {array} matrix 2d array with true/false param
      */
-    showWinAnimation(resultConfig) {
-        if (this.winAnimRequired){
-
-            for (let i = 0; i < resultConfig.matrix.length; i++){
-                let curResultReel = resultConfig.matrix[i];
-                let curReel = this.allReels[i];
-
-                for(let j = 0; j < curResultReel.length; j++){
-
-                    if(curResultReel[j]){
-                        curReel.symbols[j].playWinAnimation()
-                    } else {
-                        curReel.symbols[j].playLossAnimation()
-                    }
-
-                }
-            }
-            this.winAnimRequired = false;
-
+    showWinAnimation(matrix) {
+        if (!this.winAnimRequired){
+            return;
         }
+
+        for (let i = 0; i < matrix.length; i++){
+            const curResultReel = matrix[i];
+            const curReel = this.allReels[i];
+
+            curReel.showWinSymb(curResultReel);
+        }
+
+        this.winAnimRequired = false;
     }
 
+    playIdle() {
+        this.allReels.forEach( reel => {
+            reel.playIdle();
+        })
+    }
 }

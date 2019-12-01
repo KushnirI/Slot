@@ -43,7 +43,6 @@ export class CustomTween {
                     this.onComplete();
                 }
             }
-
         }
     }
 
@@ -63,13 +62,18 @@ export class CustomTween {
      * @param {number} end end point
      * @param {number} period period of time needed to reach the endpoint
      * @param {function} onComplete callback function
+     * @returns {Promise<any>}
      */
     play(start, end, period, onComplete) {
-        this.start = start;
-        this.end = end;
-        this.getSpeed(period);
-        this.onComplete = onComplete;
-        this.updateRequired = true;
+        return new Promise(resolve => {
+            this.start = start;
+            this.end = end;
+            this.getSpeed(period);
+            this.onComplete = () => {
+                onComplete();
+                resolve();
+            };
+            this.updateRequired = true;
+        })
     }
-
 }

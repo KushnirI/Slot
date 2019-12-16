@@ -2,7 +2,7 @@ var path = require("path");
 
 module.exports = {
     mode: "development",
-    entry: "./javascript/engine.js",
+    entry: "./javascript/index.js",
     output: {
         path: path.resolve(__dirname, "dist"),
         filename: "bundle.js"

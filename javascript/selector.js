@@ -1,5 +1,5 @@
-import {Button} from "./button";
-import {textures} from "./engine";
+import {Button} from "./UI/button";
+import {textures} from "./index";
 import {observableMixin} from "./main/observableMixin";
 
 export class Selector extends PIXI.Container{
@@ -17,17 +17,23 @@ export class Selector extends PIXI.Container{
         this.addChild(this.minusButton, this.plusButton, this.number);
         this.position.set(x, y);
         app.stage.addChild(this);
+
+        this.by({
+            "stateChangedTo:Spin": this.disableButtons,
+            "stateCompleted:Spin": this.buttonDisableCheck
+        })
     }
 
     minusOne() {
         this.number.texture = textures[this.possibleValues[ --this.currentValue ]];
         this.buttonDisableCheck();
+        this.fireEvent("betChanged");
     }
 
     plusOne () {
         this.number.texture = textures[this.possibleValues[ ++this.currentValue ]];
         this.buttonDisableCheck();
-
+        this.fireEvent("betChanged");
     }
 
     /**
@@ -45,7 +51,6 @@ export class Selector extends PIXI.Container{
         } else {
             this.minusButton.enable();
         }
-        this.fireEvent("notify:betChanged", this.currentValue);
     }
 
     /**
@@ -60,5 +65,21 @@ export class Selector extends PIXI.Container{
         number.position.set(100, 0);
 
         return number
+    }
+
+    /**
+     * disable buttons
+     */
+    disableButtons() {
+        this.plusButton.disable();
+        this.minusButton.disable();
+    }
+
+    /**
+     * return current bet size
+     * @returns {number} this.currentValue is position in array and 0 equals 1 bet size
+     */
+    getCurBetSize() {
+        return this.currentValue + 1;
     }
 }

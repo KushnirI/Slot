@@ -1,6 +1,5 @@
-import {textures} from "../engine";
+import {textures} from "../index";
 import {CustomTween} from "./customTween";
-import {betLines} from "../engine";
 
 export class Symbol extends PIXI.Sprite{
     constructor(textureSrc, config){
@@ -9,18 +8,15 @@ export class Symbol extends PIXI.Sprite{
         this.width = config.symbolDimensions.width;
         this.height = config.symbolDimensions.height;
         this.slotLength = config.slotLength;
+        this.speed = config.symbolSpeed;
 
         this.type = textureSrc;
         this.anchor.set(0.5);
-
-        this.speed = config.symbolSpeed;
-
         this.startScale = this.scale._x;
         this.endScale = this.startScale*1.25;
 
         this.tween = new CustomTween(this, "y", this.y, this.y +  this.slotLength, this.speed);
         this.bounceTween = new CustomTween(this, "y", this.y, this.y - this.height/2, this.speed*2/3);
-
         this.scaleTween = new CustomTween(this, "symbScale", this.startScale,  this.endScale, this.speed*3);
 
     }
@@ -37,7 +33,6 @@ export class Symbol extends PIXI.Sprite{
 
         })
     }
-
 
     /**
      * evenly change position by one slot using tween
@@ -110,34 +105,18 @@ export class Symbol extends PIXI.Sprite{
     }
 
     /**
-     * saves current parent params to be able to restore it later
-     * and change parent to betLines to change the layer
+     *makes symbols semi transparent
      */
     playLossAnimation() {
-
-        this.parentReel = this.parent;
-        const globalX = this.getGlobalPosition().x;
-        const globalY = this.getGlobalPosition().y;
-        this.localX = this.x;
-        this.localY = this.y;
-
         this.alpha = 0.5;
-
-        betLines.addChildAt(this, 0);
-        this.position.set(globalX, globalY);
     }
+
     /**
-     * sets default symbols params and return parent to reel if it was changed
+     * sets default symbols params
      */
     playIdle () {
         this.scale.set(this.startScale);
         this.alpha = 1;
-
-        if(this.parentReel){
-            this.parentReel.addChild(this);
-            this.position.set(this.localX, this.localY);
-        }
-        this.parentReel = null;
     }
 
 }

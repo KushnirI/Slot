@@ -15,7 +15,7 @@ export const observableMixin = {
                     events.addListener(eventName, this);
                 }
 
-                this.eventHandlers[eventName] = params[eventName] ;
+                this.eventHandlers[eventName] = params[eventName];
             }
         }
     },

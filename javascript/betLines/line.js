@@ -1,5 +1,5 @@
 export class Line extends PIXI.Graphics {
-    constructor ( arrConfig ) {
+    constructor(arrConfig) {
         super();
 
         this.lineStyle(3, 0x00ff00, 0.5);
@@ -14,7 +14,7 @@ export class Line extends PIXI.Graphics {
     createLineByPoints(arrConfig) {
         this.moveTo(arrConfig[0].x, arrConfig[0].y);
 
-        for(let i = 1; i < arrConfig.length; i++){
+        for (let i = 1; i < arrConfig.length; i++) {
             const curPointConfig = arrConfig[i];
             this.lineTo(curPointConfig.x, curPointConfig.y);
         }
@@ -30,7 +30,7 @@ export class Line extends PIXI.Graphics {
     /**
      * hides line
      */
-    hideWinLine () {
+    hideWinLine() {
         this.visible = false;
     }
 }

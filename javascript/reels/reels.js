@@ -1,9 +1,8 @@
-import {changeReelsSpinningTo} from "../engine";
 import {Reel} from "./reel"
 import {gameConfig} from "../main/gameConfig";
 import {observableMixin} from "../main/observableMixin";
 
-export class Reels extends PIXI.Container{
+export class Reels extends PIXI.Container {
     constructor() {
         super();
 
@@ -11,7 +10,6 @@ export class Reels extends PIXI.Container{
 
         this.allReels = this.addReels();
         this.mask = this.addMask();
-
         this.winAnimRequired = false;
         this.resultConfig = null;
 
@@ -20,11 +18,12 @@ export class Reels extends PIXI.Container{
         Object.assign(this, observableMixin);
 
         this.by({
-            "notify:spinStart" : this.start,
-            "notify:serverManager.newResponse" : this.serverResponseReceived,
+            "stateChangedTo:Spin": this.start,
+            "notify:serverManager.newResponse": this.serverResponseReceived,
             "notify:winSymbolsProcessed": this.addWinHandlerValues,
-            "notify:betChanged" : this.playIdle
-        })
+            "stateChangedTo:Idle": this.playIdle,
+            "spin:forcedStop": this.forcedStop
+        });
     }
 
     /**
@@ -35,7 +34,7 @@ export class Reels extends PIXI.Container{
         let reelsPoints = gameConfig.reelsPosition.reelsPoints;
         let allReels = [];
 
-        for(let i = 0; i < reelsPoints.length; i++){
+        for (let i = 0; i < reelsPoints.length; i++) {
             let curReelPoints = reelsPoints[i];
             let reel = new Reel(curReelPoints.x, curReelPoints.y);
             allReels.push(reel);
@@ -74,9 +73,8 @@ export class Reels extends PIXI.Container{
      * start spinning reels
      * @returns {Promise<any>} promise
      */
-    startReelsSpin () {
-        changeReelsSpinningTo(true);
-        return Promise.all( this.allReels.map( reel => {
+    startReelsSpin() {
+        return Promise.all(this.allReels.map(reel => {
             return reel.start();
         }))
     }
@@ -96,47 +94,44 @@ export class Reels extends PIXI.Container{
      * @param {number} symbsBfResult amount of random symbols before result
      * @returns {Promise<any>} promise
      */
-    startStopSequence ( symbsBfResult = 6) {
-            return Promise.all(this.allReels.map( (reel, i) => {
-                return reel.startStopSequence( this.resultConfig.spinResult[i], symbsBfResult+i*2);
-            }))
+    startStopSequence(symbsBfResult = 6) {
+        return Promise.all(this.allReels.map((reel, i) => {
+            return reel.startStopSequence(this.resultConfig.spinResult[i], symbsBfResult + i * 2);
+        }))
+    }
+
+    /**
+     * skips spinning animation
+     */
+    forcedStop() {
+        this.allReels.forEach(reel => {
+            reel.forcedStop();
+        })
     }
 
     /**
      * sets result config
      * @param {object} resultConfig from winHandler
      */
-    addWinHandlerValues (resultConfig) {
-        if(resultConfig) {
+    addWinHandlerValues(resultConfig) {
+        if (resultConfig) {
             this.winAnimRequired = true;
         }
         this.symbolsResultConfig = resultConfig;
     }
 
     /**
-     * when each reel finished spin, it reduces reelsCounter
-     * when all reels are finished, reset the counter, and check bet lines
+     * depending on winAnimRequired fire event and show win/loss animation for each symbol
      */
-    onSpinComplete () {
-        changeReelsSpinningTo(false);
-
-        setTimeout( () => {
-            this.showWinAnimation(this.symbolsResultConfig);
-            this.fireEvent("notify:spinOver", this.resultConfig);
-        },100);
-
-    }
-
-    /**
-     * if winAnimRequired, show win/loss animation for each symbol
-     * @param {array} matrix 2d array with true/false param
-     */
-    showWinAnimation(matrix) {
-        if (!this.winAnimRequired){
+    onSpinComplete() {
+        if (!this.winAnimRequired) {
+            this.fireEvent("playIdle");
             return;
         }
 
-        for (let i = 0; i < matrix.length; i++){
+        this.fireEvent("playWin");
+        let matrix = this.symbolsResultConfig;
+        for (let i = 0; i < matrix.length; i++) {
             const curResultReel = matrix[i];
             const curReel = this.allReels[i];
 
@@ -146,8 +141,11 @@ export class Reels extends PIXI.Container{
         this.winAnimRequired = false;
     }
 
+    /**
+     * sets default symbols params for each symbol
+     */
     playIdle() {
-        this.allReels.forEach( reel => {
+        this.allReels.forEach(reel => {
             reel.playIdle();
         })
     }

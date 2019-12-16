@@ -13,14 +13,15 @@ export class WinScreen extends PIXI.Graphics{
         this.addChild(this.screen, this.message);
         this.hideScreen();
         this.alpha = 0.5;
+        this.currentWin = null;
 
         this.by({
-            "notify:spinStart" : this.hideScreen,
-            "notify:spinOver" : this.showScreen,
-            "notify:betChanged" : this.hideScreen
+            "notify:serverManager.newResponse": this.updateCurrentWin,
+            "stateChangedTo:Win" : this.showScreen,
+            "stateCompleted:Win" : this.hideScreen
         });
 
-        app.stage.addChild(this)
+        app.stage.addChild(this);
     }
 
     createMessage (x, y, width, height) {
@@ -37,17 +38,20 @@ export class WinScreen extends PIXI.Graphics{
     }
 
     /**
-     * makes winScreen visible
      * @param {object} config server's result config
      * @param {number} config.winAmount amount of win points
      */
-    showScreen (config){
-        if(config && config.winAmount > 0) {
-            const winMsg = "You won " + config.winAmount + " !!!";
-            this.visible = true;
-            this.message.text = winMsg;
-            console.error(this.message);
-        }
+    updateCurrentWin(config){
+        this.currentWin = config.winAmount;
+    }
+
+    /**
+     * makes winScreen visible
+     */
+    showScreen (){
+        this.visible = true;
+        this.message.text = `You won ${this.currentWin} !!!`;
+
     }
 
     /**

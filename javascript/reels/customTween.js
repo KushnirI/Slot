@@ -1,8 +1,8 @@
-import {renderLoop} from "../engine";
+import {renderLoop} from "../index";
 import {timeBetweenFrames} from "../utils";
 
 export class CustomTween {
-    constructor(obj, propertyName, start, end, period){
+    constructor(obj, propertyName, start, end, period) {
 
         this.obj = obj;
         this.start = start;
@@ -18,25 +18,25 @@ export class CustomTween {
      * on each frame evenly change required param, from the start point to the end, for a set period of time
      * @param {number} delta eliminates delays between frames
      */
-    update (delta){
-        if(this.updateRequired){
-            if(this.distance > 0) {
-                if (this.obj[this.propertyName] < this.end){
+    update(delta) {
+        if (this.updateRequired) {
+            if (this.distance > 0) {
+                if (this.obj[this.propertyName] < this.end) {
                     this.obj[this.propertyName] += this.speed * delta;
                 }
 
-                if ( this.obj[this.propertyName]  >= this.end  ) {
+                if (this.obj[this.propertyName] >= this.end) {
                     this.obj[this.propertyName] = this.end;
                     this.updateRequired = false;
 
                     this.onComplete();
                 }
             } else {
-                if (this.obj[this.propertyName] > this.end){
+                if (this.obj[this.propertyName] > this.end) {
                     this.obj[this.propertyName] += this.speed * delta;
                 }
 
-                if ( this.obj[this.propertyName]  <= this.end  ) {
+                if (this.obj[this.propertyName] <= this.end) {
                     this.obj[this.propertyName] = this.end;
                     this.updateRequired = false;
 
@@ -50,10 +50,10 @@ export class CustomTween {
      * generates speed depend on distance and period
      * @param {number} period period of time needed to reach the endpoint
      */
-    getSpeed (period) {
+    getSpeed(period) {
         this.distance = this.end - this.start;
-        this.numOfFrames = period/timeBetweenFrames;
-        this.speed = this.distance/this.numOfFrames;
+        this.numOfFrames = period / timeBetweenFrames;
+        this.speed = this.distance / this.numOfFrames;
     }
 
     /**

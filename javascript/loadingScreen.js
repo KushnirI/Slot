@@ -1,7 +1,7 @@
 import {observableMixin} from "./main/observableMixin";
 import {Rectangle} from "./winScreen/rectangle";
 
-export class LoadingScreen extends PIXI.Graphics{
+export class LoadingScreen extends PIXI.Container {
     constructor(x, y, width, height, color) {
         super();
 

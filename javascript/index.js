@@ -7,6 +7,7 @@ document.body.appendChild(app.view);
 
 export const stateHandler = new StateMachine(StatesConfig);
 
+// added few unused by program heavy images to make loading process more realistic.
 PIXI.Loader.shared
     .add("./images/sheet.json")
     .add("./images/1.jpg")

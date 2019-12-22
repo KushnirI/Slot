@@ -17,11 +17,6 @@ export class Selector extends PIXI.Container{
         this.addChild(this.minusButton, this.plusButton, this.number);
         this.position.set(x, y);
         app.stage.addChild(this);
-
-        this.by({
-            "stateChangedTo:Spin": this.disableButtons,
-            "stateCompleted:Spin": this.buttonDisableCheck
-        })
     }
 
     minusOne() {

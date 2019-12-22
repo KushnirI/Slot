@@ -1,11 +1,9 @@
 import {Rectangle} from "./rectangle";
-import {observableMixin} from "../main/observableMixin";
 
-export class WinScreen extends PIXI.Graphics{
+export class WinScreen extends PIXI.Container{
     constructor(x, y, width, height, color) {
         super();
 
-        Object.assign(this, observableMixin);
         this.screen = new Rectangle(x, y, width, height, color);
         this.screen.alpha = 0.3;
         this.message = this.createMessage(x, y, width, height);
@@ -14,12 +12,6 @@ export class WinScreen extends PIXI.Graphics{
         this.hideScreen();
         this.alpha = 0.5;
         this.currentWin = null;
-
-        this.by({
-            "notify:serverManager.newResponse": this.updateCurrentWin,
-            "stateChangedTo:Win" : this.showScreen,
-            "stateCompleted:Win" : this.hideScreen
-        });
 
         app.stage.addChild(this);
     }
@@ -38,11 +30,10 @@ export class WinScreen extends PIXI.Graphics{
     }
 
     /**
-     * @param {object} config server's result config
-     * @param {number} config.winAmount amount of win points
+     * @param {number} winAmount amount of win points
      */
-    updateCurrentWin(config){
-        this.currentWin = config.winAmount;
+    updateCurrentWin(winAmount){
+        this.currentWin = winAmount;
     }
 
     /**
@@ -51,7 +42,6 @@ export class WinScreen extends PIXI.Graphics{
     showScreen (){
         this.visible = true;
         this.message.text = `You won ${this.currentWin} !!!`;
-
     }
 
     /**

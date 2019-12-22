@@ -27,7 +27,7 @@ export class StateMachine {
         /*when the next state starts it becomes active and in case if it listens the same event
         that finished previous state and is processed later in observable loop it will be finished
         straight away. setTimeout is added to prevent it.*/
-        setTimeout(() => (this.currentState.start()), 0);
+        setTimeout(() => this.currentState.start(), 0);
     }
 
     static get instance() {

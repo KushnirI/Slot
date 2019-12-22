@@ -1,4 +1,5 @@
 import {DefaultState} from "./defaultState";
+import {loader} from "../index";
 
 export class Load extends DefaultState {
     constructor(){
@@ -10,5 +11,15 @@ export class Load extends DefaultState {
 
     onLoadingComplete(){
         this.finish("onLoadingComplete");
+    }
+
+    start() {
+        super.start();
+        loader.startLoading();
+    }
+
+    finish(eventName) {
+        loader.loadingScreen.hide();
+        super.finish(eventName);
     }
 }

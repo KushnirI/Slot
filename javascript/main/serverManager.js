@@ -3,22 +3,19 @@ import {gameConfig} from "./gameConfig";
 import {observableMixin} from "./observableMixin";
 
 export class ServerManager {
-    constructor(slot) {
+    constructor() {
         this.reelsetsList = gameConfig.reelsets;
         this.betLines = gameConfig.betLines;
         this.reelsLength = gameConfig.gameSize.rows;
 
         Object.assign(this, observableMixin);
-        this.by({"stateChangedTo:Spin": this.start});
-
-        this.slot = slot;
     }
 
     /**
      * upon request from client creates spin/bet result and inform the client
+     * @param {number} betSize multiplier for win points
      */
-    start() {
-        const betSize = this.slot.betSelector.getCurBetSize();
+    start(betSize) {
         const currentReelset = this.selectReelset(this.reelsetsList);
         const spinResult = this.selectPositions(currentReelset);
         const generatedResponse = this.checkBetLines(spinResult, betSize);

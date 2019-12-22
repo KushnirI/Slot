@@ -1,11 +1,9 @@
-import {observableMixin} from "./main/observableMixin";
-import {Rectangle} from "./winScreen/rectangle";
+import {Rectangle} from "../winScreen/rectangle";
 
-export class LoadingScreen extends PIXI.Container {
+export class LoadingScreen extends PIXI.Container{
     constructor(x, y, width, height, color) {
         super();
 
-        Object.assign(this, observableMixin);
         this.screen = new Rectangle(x, y, width, height, color);
         this.screen.alpha = 0.5;
         this.message = this.createMessage(x, y, width, 400);
@@ -14,8 +12,7 @@ export class LoadingScreen extends PIXI.Container {
         this.addChild(this.screen, this.message, this.blackLine, this.greenLine);
 
         this.update(0);
-        this.by({"stateCompleted:Load" : this.hideAll});
-        app.stage.addChild(this)
+        app.stage.addChild(this);
     }
 
     createMessage (x, y, width, height) {
@@ -36,7 +33,7 @@ export class LoadingScreen extends PIXI.Container {
         this.greenLine.width = percent * 5;
     }
 
-    hideAll() {
+    hide() {
         this.visible = false;
     }
 }

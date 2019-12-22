@@ -67,10 +67,6 @@ const events = {
      * @param {array} args arguments for callback function
      */
     fireEvent : function (eventName, args){
-        //stateMachine fires event every time each state begins and ends. Some of such events may not have listeners.
-        if(!this.events[eventName]){
-            return;
-        }
         const listeners = this.events[eventName];
 
         for(let i = 0; i < listeners.length; i++) {

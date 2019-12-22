@@ -1,4 +1,5 @@
 import {DefaultState} from "./defaultState";
+import {slot} from "../index";
 
 export class Idle extends DefaultState {
     constructor(){
@@ -8,5 +9,10 @@ export class Idle extends DefaultState {
 
     onSpinButtonPressed(){
         this.finish("onSpinButtonPressed");
+    }
+
+    start() {
+        super.start();
+        slot.reels.playIdle();
     }
 }

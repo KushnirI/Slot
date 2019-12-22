@@ -1,23 +1,14 @@
 import {Line} from "./line";
 import {gameConfig} from "../main/gameConfig";
-import {observableMixin} from "../main/observableMixin";
 
 export class BetLines extends PIXI.Container {
     constructor() {
         super();
 
-        Object.assign(this, observableMixin);
-
         this.linePoints = this.addLinePoints();
         this.allLines = this.addLines(this.linePoints);
 
         this.currentWinLines = [];
-
-        this.by({
-            "notify:serverManager.newResponse": this.updateWinLines,
-            "stateChangedTo:Win": this.showWinLines,
-            "stateCompleted:Win": this.hideWinLines
-        });
 
         app.stage.addChild(this);
     }
@@ -72,11 +63,10 @@ export class BetLines extends PIXI.Container {
     }
 
     /**
-     * @param {object} config server's result config
-     * @param {array} config.winLines array with win lines
+     * @param {array} winLines array with win lines
      */
-    updateWinLines(config) {
-        this.currentWinLines = config.winLines;
+    updateWinLines(winLines) {
+        this.currentWinLines = winLines;
     }
 
     /**

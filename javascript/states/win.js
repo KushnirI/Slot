@@ -1,4 +1,5 @@
 import {DefaultState} from "./defaultState";
+import {slot} from "../index";
 
 export class Win extends DefaultState {
     constructor(){
@@ -15,5 +16,18 @@ export class Win extends DefaultState {
 
     onSpinButtonPressed(){
         this.finish("onSpinButtonPressed");
+    }
+
+    start(){
+        super.start();
+        slot.betLines.showWinLines();
+        slot.winScreen.showScreen();
+        slot.reels.showWinAnimation();
+    }
+
+    finish(eventName) {
+        slot.betLines.hideWinLines();
+        slot.winScreen.hideScreen();
+        super.finish(eventName);
     }
 }

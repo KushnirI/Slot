@@ -1,39 +1,19 @@
 import {Slot} from "./slot";
 import {StateMachine} from "./states/stateMachine";
 import {StatesConfig} from "./states/statesConfig";
-import {LoadingScreen} from "./loadingScreen";
+import {Loader} from "./loader/loader";
 
 document.body.appendChild(app.view);
-
-export const stateHandler = new StateMachine(StatesConfig);
-
-// added few unused by program heavy images to make loading process more realistic.
-PIXI.Loader.shared
-    .add("./images/sheet.json")
-    .add("./images/1.jpg")
-    .add("./images/2.jpg")
-    .add("./images/3.jpg")
-    .add("./images/4.jpg")
-    .add("./images/5.jpg")
-    .on("progress", loadProgressHandler)
-    .load(setup);
-
-let loadingScreen = new LoadingScreen(0, 0, 800, 500, 0x696969);
-
-function loadProgressHandler(loader) {
-    loadingScreen.update(loader.progress);
-}
 
 export let textures,
     background,
     slot;
 
 export const renderLoop = [];
+export const loader = new Loader();
+export const stateHandler = new StateMachine(StatesConfig);
 
-function setup() {
-    //releasing loading state
-    events.fireEvent("onLoadingComplete");
-
+export function setup() {
     textures = PIXI.Loader.shared.resources["./images/sheet.json"].textures;
     background = new PIXI.Sprite(textures["background.png"]);
     app.stage.addChild(background);

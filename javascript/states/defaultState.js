@@ -13,7 +13,6 @@ export class DefaultState {
 
     start() {
         this.active = true;
-        this.fireEvent(`stateChangedTo:${this.name}`);
         console.log(`stateChangedTo:${this.name}`);
     }
 
@@ -22,9 +21,6 @@ export class DefaultState {
         if (!this.active) {
             return;
         }
-
-        this.fireEvent(`stateCompleted:${this.name}`);
-        console.log(`stateCompleted:${this.name}`);
 
         this.active = false;
         let next = this.transitions[eventName];

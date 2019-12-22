@@ -1,6 +1,5 @@
 import {Reel} from "./reel"
 import {gameConfig} from "../main/gameConfig";
-import {observableMixin} from "../main/observableMixin";
 
 export class Reels extends PIXI.Container {
     constructor() {
@@ -10,20 +9,9 @@ export class Reels extends PIXI.Container {
 
         this.allReels = this.addReels();
         this.mask = this.addMask();
-        this.winAnimRequired = false;
-        this.resultConfig = null;
+        this.currentWinSymbols = null;
 
         app.stage.addChild(this);
-
-        Object.assign(this, observableMixin);
-
-        this.by({
-            "stateChangedTo:Spin": this.start,
-            "notify:serverManager.newResponse": this.serverResponseReceived,
-            "notify:winSymbolsProcessed": this.addWinHandlerValues,
-            "stateChangedTo:Idle": this.playIdle,
-            "spin:forcedStop": this.forcedStop
-        });
     }
 
     /**
@@ -57,19 +45,6 @@ export class Reels extends PIXI.Container {
     }
 
     /**
-     * processing the spin
-     */
-    start() {
-        Promise.all([
-            this.startReelsSpin(),
-            new Promise(resolve => this.serverResponseResolve = resolve)
-        ])
-            .then(() => this.startStopSequence())
-            .then(() => this.onSpinComplete())
-
-    }
-
-    /**
      * start spinning reels
      * @returns {Promise<any>} promise
      */
@@ -80,24 +55,21 @@ export class Reels extends PIXI.Container {
     }
 
     /**
-     *
-     * @param {object} resultConfig resultConfig from server
-     * @param {array} resultConfig.spinResult array with bet result for each reel
-     * @param {number} resultConfig.winAmount win points on current bet
-     */
-    serverResponseReceived(resultConfig) {
-        this.resultConfig = resultConfig;
-        this.serverResponseResolve();
-    }
-
-    /**
+     * @param {array} spinResult 2d array with symbols, on which each reel has to stop
      * @param {number} symbsBfResult amount of random symbols before result
      * @returns {Promise<any>} promise
      */
-    startStopSequence(symbsBfResult = 6) {
+    startStopSequence(spinResult, symbsBfResult = 6) {
         return Promise.all(this.allReels.map((reel, i) => {
-            return reel.startStopSequence(this.resultConfig.spinResult[i], symbsBfResult + i * 2);
+            return reel.startStopSequence(spinResult[i], symbsBfResult + i * 2);
         }))
+    }
+
+    /**
+     * @param {array|null} winSymbols 2d array with win symbols or null if no win symbols
+     */
+    updateWinSymbols (winSymbols) {
+        this.currentWinSymbols = winSymbols;
     }
 
     /**
@@ -110,35 +82,15 @@ export class Reels extends PIXI.Container {
     }
 
     /**
-     * sets result config
-     * @param {object} resultConfig from winHandler
+     * show win/loss animation for each symbol
      */
-    addWinHandlerValues(resultConfig) {
-        if (resultConfig) {
-            this.winAnimRequired = true;
-        }
-        this.symbolsResultConfig = resultConfig;
-    }
-
-    /**
-     * depending on winAnimRequired fire event and show win/loss animation for each symbol
-     */
-    onSpinComplete() {
-        if (!this.winAnimRequired) {
-            this.fireEvent("playIdle");
-            return;
-        }
-
-        this.fireEvent("playWin");
-        let matrix = this.symbolsResultConfig;
-        for (let i = 0; i < matrix.length; i++) {
-            const curResultReel = matrix[i];
+    showWinAnimation() {
+        for (let i = 0; i < this.currentWinSymbols.length; i++) {
+            const curResultReel = this.currentWinSymbols[i];
             const curReel = this.allReels[i];
 
             curReel.showWinSymb(curResultReel);
         }
-
-        this.winAnimRequired = false;
     }
 
     /**

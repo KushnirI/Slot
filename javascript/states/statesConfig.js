@@ -12,6 +12,6 @@ import {Win} from "./win";
 export const StatesConfig = [
     {class: Load, transitions: {onLoadingComplete: "Idle"}},
     {class: Idle, transitions: {onSpinButtonPressed: "Spin"}},
-    {class: Spin, transitions: {playWin: "Win", playIdle: "Idle",}},
+    {class: Spin, transitions: {playWin: "Win", playIdle: "Idle"}},
     {class: Win, transitions: {betChanged: "Idle", onSpinButtonPressed: "Spin"}}
 ];
